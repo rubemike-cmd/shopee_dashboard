@@ -14,12 +14,13 @@ import { useGoalsAnalysis } from '@/hooks/useGoalsAnalysis';
 import { useOrders } from '@/contexts/OrdersContext';
 import { usePdfReport } from '@/hooks/usePdfReport';
 import SpreadsheetUploader from '@/components/SpreadsheetUploader';
+import InsightsPanel from '@/components/InsightsPanel';
 
 const COLORS = ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#EF4444'];
 
 export default function Dashboard() {
   const [filters, setFilters] = useState<FilterOptions>({});
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'logistics' | 'goals' | 'upload'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'orders' | 'logistics' | 'goals' | 'upload'>('overview');
   const { orders: contextOrders } = useOrders();
   const { generatePdf, isGenerating } = usePdfReport();
 
@@ -88,6 +89,7 @@ export default function Dashboard() {
 
   const TABS = [
     { id: 'overview', label: 'Visão Geral' },
+    { id: 'insights', label: '✦ Insights' },
     { id: 'goals', label: 'Metas' },
     { id: 'orders', label: 'Pedidos' },
     { id: 'logistics', label: 'Logística' },
@@ -292,6 +294,38 @@ export default function Dashboard() {
                 ))}
               </div>
             </Card>
+          </div>
+        )}
+
+        {activeTab === 'insights' && (
+          <div className="space-y-4">
+            <InsightsPanel
+              data={{
+                totalOrders: metrics.totalOrders,
+                totalRevenue: metrics.totalRevenue,
+                totalProfit: metrics.totalProfit,
+                profitMargin: metrics.profitMargin,
+                avgOrderValue: metrics.avgOrderValue,
+                topProducts: productProfitability.map(p => ({
+                  name: p.name,
+                  count: p.count,
+                  totalProfit: p.totalProfit,
+                })),
+                statusDistribution: statusDistribution.map(s => ({
+                  name: s.name,
+                  value: s.value,
+                  percentage: s.percentage,
+                })),
+                stateDistribution: stateDistribution.map(s => ({
+                  name: s.name,
+                  value: s.value,
+                })),
+                logisticsDistribution: logisticsDistribution.map(l => ({
+                  name: l.name,
+                  value: l.value,
+                })),
+              }}
+            />
           </div>
         )}
 

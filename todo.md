@@ -20,3 +20,12 @@
 - [x] Incluir métricas principais, gráficos e tabela de top produtos no PDF
 - [x] Adicionar botão "Exportar PDF" visível no cabeçalho do dashboard
 - [x] Incluir filtros ativos e período no cabeçalho do relatório
+
+## Aba de Insights com Mentor IA
+- [x] Criar endpoint tRPC `insights.generate` que recebe métricas resumidas e chama LLM
+- [x] Criar prompt de sistema com persona de mentor experiente em e-commerce
+- [x] Criar componente `InsightsPanel.tsx` com layout de mentor (avatar, cards de insights, categorias)
+- [x] Adicionar aba "Insights" no Dashboard com botão de regenerar análise
+- [x] Exibir insights categorizados: pontos fortes, alertas, oportunidades e recomendações
+- [x] Mostrar estado de carregamento com skeleton durante geração
+- [x] Escrever testes para o endpoint de insights
