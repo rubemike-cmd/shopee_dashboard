@@ -6,7 +6,9 @@ import { ChevronDown, Package, TrendingUp, Truck, DollarSign } from 'lucide-reac
 import MetricCard from '@/components/MetricCard';
 import OrdersTable from '@/components/OrdersTable';
 import LogisticsAnalysis from '@/components/LogisticsAnalysis';
+import GoalsTracker from '@/components/GoalsTracker';
 import { useOrdersAnalysis, FilterOptions } from '@/hooks/useOrdersAnalysis';
+import { useGoalsAnalysis } from '@/hooks/useGoalsAnalysis';
 
 const COLORS = ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#EF4444'];
 
@@ -17,7 +19,7 @@ export default function Dashboard() {
     estado: false,
     logistica: false,
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'logistics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'logistics' | 'goals'>('overview');
 
   const {
     filteredOrders,
@@ -32,6 +34,15 @@ export default function Dashboard() {
     uniqueStatuses,
     uniqueLogistics,
   } = useOrdersAnalysis(filters);
+
+  const {
+    goals,
+    weeklyProgress,
+    monthlyProgress,
+    projectedMonthlyRevenue,
+    projectedMonthlyProfit,
+    lastFourWeeks,
+  } = useGoalsAnalysis();
 
   const handleFilterChange = (filterType: string, value: string) => {
     setFilters(prev => {
@@ -264,10 +275,10 @@ export default function Dashboard() {
         </div>
 
         {/* Tabs Navigation */}
-        <div className="mb-8 flex gap-4 border-b border-border">
+        <div className="mb-8 flex gap-4 border-b border-border overflow-x-auto">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`pb-3 px-4 font-semibold transition-colors ${
+            className={`pb-3 px-4 font-semibold transition-colors whitespace-nowrap ${
               activeTab === 'overview'
                 ? 'border-b-2 border-primary text-primary'
                 : 'text-muted-foreground hover:text-foreground'
@@ -276,8 +287,18 @@ export default function Dashboard() {
             Visão Geral
           </button>
           <button
+            onClick={() => setActiveTab('goals')}
+            className={`pb-3 px-4 font-semibold transition-colors whitespace-nowrap ${
+              activeTab === 'goals'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Metas
+          </button>
+          <button
             onClick={() => setActiveTab('orders')}
-            className={`pb-3 px-4 font-semibold transition-colors ${
+            className={`pb-3 px-4 font-semibold transition-colors whitespace-nowrap ${
               activeTab === 'orders'
                 ? 'border-b-2 border-primary text-primary'
                 : 'text-muted-foreground hover:text-foreground'
@@ -287,7 +308,7 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setActiveTab('logistics')}
-            className={`pb-3 px-4 font-semibold transition-colors ${
+            className={`pb-3 px-4 font-semibold transition-colors whitespace-nowrap ${
               activeTab === 'logistics'
                 ? 'border-b-2 border-primary text-primary'
                 : 'text-muted-foreground hover:text-foreground'
@@ -412,6 +433,18 @@ export default function Dashboard() {
           </div>
         </Card>
           </>
+        )}
+
+        {/* Goals Tab */}
+        {activeTab === 'goals' && (
+          <GoalsTracker
+            goals={goals}
+            weeklyProgress={weeklyProgress}
+            monthlyProgress={monthlyProgress}
+            projectedMonthlyRevenue={projectedMonthlyRevenue}
+            projectedMonthlyProfit={projectedMonthlyProfit}
+            lastFourWeeks={lastFourWeeks}
+          />
         )}
 
         {/* Orders Tab */}
