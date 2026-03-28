@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint, double } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -27,3 +27,19 @@ export const spreadsheetUploads = mysqlTable("spreadsheet_uploads", {
 
 export type SpreadsheetUpload = typeof spreadsheetUploads.$inferSelect;
 export type InsertSpreadsheetUpload = typeof spreadsheetUploads.$inferInsert;
+
+/**
+ * Tabela de metas personalizáveis do dashboard.
+ * Armazena metas de receita e lucro para períodos semanal e mensal.
+ */
+export const dashboardGoals = mysqlTable("dashboard_goals", {
+  id: int("id").autoincrement().primaryKey(),
+  weeklyRevenue: double("weeklyRevenue").notNull().default(0),
+  weeklyProfit: double("weeklyProfit").notNull().default(0),
+  monthlyRevenue: double("monthlyRevenue").notNull().default(0),
+  monthlyProfit: double("monthlyProfit").notNull().default(0),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DashboardGoals = typeof dashboardGoals.$inferSelect;
+export type InsertDashboardGoals = typeof dashboardGoals.$inferInsert;

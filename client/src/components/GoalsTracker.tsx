@@ -5,6 +5,7 @@ import type { GoalMetrics } from '@/hooks/useGoalsAnalysis';
 
 interface GoalsTrackerProps {
   goals: GoalMetrics;
+  goalsUpdatedAt?: Date | null;
   weeklyProgress: {
     revenue: number;
     profit: number;
@@ -38,6 +39,7 @@ interface GoalsTrackerProps {
 
 export default function GoalsTracker({
   goals,
+  goalsUpdatedAt,
   weeklyProgress,
   monthlyProgress,
   projectedMonthlyRevenue,
@@ -66,6 +68,19 @@ export default function GoalsTracker({
 
   return (
     <div className="space-y-6">
+      {/* Goals last updated info */}
+      {goalsUpdatedAt && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+          Metas personalizadas · última atualização:{' '}
+          <span className="font-medium">
+            {new Date(goalsUpdatedAt).toLocaleString('pt-BR', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            })}
+          </span>
+        </div>
+      )}
       {/* Weekly Goals */}
       <Card className="chart-container">
         <div className="flex items-center gap-2 mb-6">

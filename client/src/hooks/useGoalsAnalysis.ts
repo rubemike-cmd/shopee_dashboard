@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { orders as ordersData } from '@/data/orders';
+import { trpc } from '@/lib/trpc';
 import type { Order } from './useOrdersAnalysis';
 
 export interface GoalMetrics {
@@ -9,25 +9,39 @@ export interface GoalMetrics {
   monthlyProfitGoal: number;
 }
 
-export function useGoalsAnalysis() {
-  // Metas padrão baseadas na análise histórica
-  const goals: GoalMetrics = {
-    weeklyRevenueGoal: 555.31,
-    weeklyProfitGoal: 39.95,
-    monthlyRevenueGoal: 2221.25,
-    monthlyProfitGoal: 159.80,
-  };
+const DEFAULT_GOALS: GoalMetrics = {
+  weeklyRevenueGoal: 555.31,
+  weeklyProfitGoal: 39.95,
+  monthlyRevenueGoal: 2221.25,
+  monthlyProfitGoal: 159.80,
+};
+
+export function useGoalsAnalysis(ordersData: Order[] = []) {
+  // Fetch saved goals from DB
+  const { data: savedGoals } = trpc.goals.get.useQuery();
+
+  const goals: GoalMetrics = useMemo(() => {
+    if (savedGoals) {
+      return {
+        weeklyRevenueGoal: savedGoals.weeklyRevenue,
+        weeklyProfitGoal: savedGoals.weeklyProfit,
+        monthlyRevenueGoal: savedGoals.monthlyRevenue,
+        monthlyProfitGoal: savedGoals.monthlyProfit,
+      };
+    }
+    return DEFAULT_GOALS;
+  }, [savedGoals]);
 
   const weeklyProgress = useMemo(() => {
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentWeek = getWeekNumber(today);
-    
+
     const weekStart = getWeekStart(currentYear, currentWeek);
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    const weekOrders = (ordersData as Order[]).filter(order => {
+    const weekOrders = ordersData.filter(order => {
       const orderDate = new Date(order['Data de Criação']);
       return orderDate >= weekStart && orderDate <= weekEnd;
     });
@@ -39,12 +53,12 @@ export function useGoalsAnalysis() {
       revenue: weekRevenue,
       profit: weekProfit,
       orders: weekOrders.length,
-      revenueProgress: (weekRevenue / goals.weeklyRevenueGoal) * 100,
-      profitProgress: (weekProfit / goals.weeklyProfitGoal) * 100,
+      revenueProgress: goals.weeklyRevenueGoal > 0 ? (weekRevenue / goals.weeklyRevenueGoal) * 100 : 0,
+      profitProgress: goals.weeklyProfitGoal > 0 ? (weekProfit / goals.weeklyProfitGoal) * 100 : 0,
       weekStart: weekStart.toISOString().split('T')[0],
       weekEnd: weekEnd.toISOString().split('T')[0],
     };
-  }, []);
+  }, [ordersData, goals]);
 
   const monthlyProgress = useMemo(() => {
     const today = new Date();
@@ -54,7 +68,7 @@ export function useGoalsAnalysis() {
     const monthStart = new Date(currentYear, currentMonth, 1);
     const monthEnd = new Date(currentYear, currentMonth + 1, 0);
 
-    const monthOrders = (ordersData as Order[]).filter(order => {
+    const monthOrders = ordersData.filter(order => {
       const orderDate = new Date(order['Data de Criação']);
       return orderDate >= monthStart && orderDate <= monthEnd;
     });
@@ -70,26 +84,26 @@ export function useGoalsAnalysis() {
       revenue: monthRevenue,
       profit: monthProfit,
       orders: monthOrders.length,
-      revenueProgress: (monthRevenue / goals.monthlyRevenueGoal) * 100,
-      profitProgress: (monthProfit / goals.monthlyProfitGoal) * 100,
+      revenueProgress: goals.monthlyRevenueGoal > 0 ? (monthRevenue / goals.monthlyRevenueGoal) * 100 : 0,
+      profitProgress: goals.monthlyProfitGoal > 0 ? (monthProfit / goals.monthlyProfitGoal) * 100 : 0,
       monthStart: monthStart.toISOString().split('T')[0],
       monthEnd: monthEnd.toISOString().split('T')[0],
       daysPassed,
       daysRemaining,
       monthName: monthStart.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }),
     };
-  }, []);
+  }, [ordersData, goals]);
 
   const projectedMonthlyRevenue = useMemo(() => {
     const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const daysPassed = new Date().getDate();
-    return (monthlyProgress.revenue / daysPassed) * daysInMonth;
+    return daysPassed > 0 ? (monthlyProgress.revenue / daysPassed) * daysInMonth : 0;
   }, [monthlyProgress]);
 
   const projectedMonthlyProfit = useMemo(() => {
     const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const daysPassed = new Date().getDate();
-    return (monthlyProgress.profit / daysPassed) * daysInMonth;
+    return daysPassed > 0 ? (monthlyProgress.profit / daysPassed) * daysInMonth : 0;
   }, [monthlyProgress]);
 
   const lastFourWeeks = useMemo(() => {
@@ -104,7 +118,7 @@ export function useGoalsAnalysis() {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 6);
 
-      const weekOrders = (ordersData as Order[]).filter(order => {
+      const weekOrders = ordersData.filter(order => {
         const orderDate = new Date(order['Data de Criação']);
         return orderDate >= weekStart && orderDate <= weekEnd;
       });
@@ -113,7 +127,7 @@ export function useGoalsAnalysis() {
       const weekProfit = weekOrders.reduce((sum, o) => sum + o['Líquido Total'], 0);
 
       weeks.push({
-        week: `Semana ${weekNumber}`,
+        week: `Sem. ${weekNumber}`,
         revenue: parseFloat(weekRevenue.toFixed(2)),
         profit: parseFloat(weekProfit.toFixed(2)),
         orders: weekOrders.length,
@@ -121,15 +135,17 @@ export function useGoalsAnalysis() {
     }
 
     return weeks;
-  }, []);
+  }, [ordersData]);
 
   return {
     goals,
+    goalsUpdatedAt: savedGoals?.updatedAt ?? null,
     weeklyProgress,
     monthlyProgress,
     projectedMonthlyRevenue,
     projectedMonthlyProfit,
     lastFourWeeks,
+    isUsingCustomGoals: !!savedGoals,
   };
 }
 

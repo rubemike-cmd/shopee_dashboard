@@ -15,6 +15,13 @@
       "when": 1774727558807,
       "tag": "0001_salty_amphibian",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1774728663062,
+      "tag": "0002_adorable_quentin_quire",
+      "breakpoints": true
     }
   ]
 }

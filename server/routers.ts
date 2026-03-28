@@ -2,27 +2,59 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { getDb } from "./db";
+import { dashboardGoals } from "../drizzle/schema";
+import { z } from "zod";
+import { eq } from "drizzle-orm";
+
+const GOALS_ROW_ID = 1; // Single-row config pattern
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  goals: router({
+    /**
+     * Busca as metas salvas. Retorna null se ainda não foram definidas.
+     */
+    get: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return null;
+      const rows = await db.select().from(dashboardGoals).where(eq(dashboardGoals.id, GOALS_ROW_ID)).limit(1);
+      return rows[0] ?? null;
+    }),
+
+    /**
+     * Salva (upsert) as metas personalizadas do dashboard.
+     */
+    save: publicProcedure
+      .input(
+        z.object({
+          weeklyRevenue: z.number().min(0),
+          weeklyProfit: z.number().min(0),
+          monthlyRevenue: z.number().min(0),
+          monthlyProfit: z.number().min(0),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Banco de dados indisponível");
+
+        await db
+          .insert(dashboardGoals)
+          .values({ id: GOALS_ROW_ID, ...input })
+          .onDuplicateKeyUpdate({ set: input });
+
+        return { success: true, goals: input };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
