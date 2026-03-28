@@ -188,23 +188,46 @@ export default function Dashboard() {
           </Card>
 
           <Card className="chart-container" id="chart-status">
-            <h3 className="text-heading mb-4">Distribuição por Status</h3>
+            <h3 className="text-heading mb-4">Rentabilidade por Produto</h3>
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
-                  data={statusDistribution}
+                  data={productProfitability.slice(0, 8).map(p => ({
+                    name: p.name.length > 26 ? p.name.substring(0, 26) + '…' : p.name,
+                    fullName: p.name,
+                    value: Math.max(p.totalRevenue, 0.01),
+                    totalRevenue: p.totalRevenue,
+                    totalProfit: p.totalProfit,
+                    count: p.count,
+                  }))}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percentage }) => `${name} (${percentage.toFixed(0)}%)`}
                   outerRadius={90}
                   dataKey="value"
                 >
-                  {statusDistribution.map((_, index) => (
+                  {productProfitability.slice(0, 8).map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `${value} pedidos`} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (!active || !payload || !payload[0]) return null;
+                    const d = payload[0].payload as { fullName: string; totalRevenue: number; totalProfit: number; count: number };
+                    const pct = metrics.totalRevenue > 0 ? (d.totalRevenue / metrics.totalRevenue * 100).toFixed(1) : '0';
+                    return (
+                      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, padding: '8px 12px', fontSize: 12, maxWidth: 240 }}>
+                        <p style={{ fontWeight: 600, marginBottom: 6 }}>{d.fullName}</p>
+                        <p style={{ marginBottom: 2 }}>Faturamento: <strong>R$ {d.totalRevenue.toFixed(2)}</strong> <span style={{ color: '#6B7280' }}>({pct}% do total)</span></p>
+                        <p style={{ marginBottom: 2 }}>Lucro acumulado: <strong style={{ color: d.totalProfit >= 0 ? '#10B981' : '#EF4444' }}>R$ {d.totalProfit.toFixed(2)}</strong></p>
+                        <p style={{ color: '#6B7280' }}>{d.count} venda(s)</p>
+                      </div>
+                    );
+                  }}
+                />
+                <Legend
+                  formatter={(value) => <span style={{ fontSize: '11px' }}>{value}</span>}
+                />
               </PieChart>
             </ResponsiveContainer>
           </Card>
@@ -338,7 +361,7 @@ export default function Dashboard() {
                   {isUsingCustomGoals ? 'Metas personalizadas salvas' : 'Usando metas padrão baseadas no histórico'}
                 </p>
               </div>
-              <GoalsEditor />
+              <GoalsEditor profitMargin={metrics.profitMargin} />
             </div>
             <GoalsTracker
               goals={goals}

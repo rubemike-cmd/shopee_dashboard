@@ -158,18 +158,22 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
   }, [filteredOrders]);
 
   const productProfitability = useMemo(() => {
-    const products: Record<string, { totalProfit: number; count: number; avgProfit: number }> = {};
+    const products: Record<string, { totalProfit: number; totalRevenue: number; count: number }> = {};
     
     filteredOrders.forEach(order => {
       const productList = order['Produtos'].split(',');
       const liquidProfit = order['Líquido Total'];
+      const revenue = order['valor da venda'];
+      const numProducts = productList.length || 1;
       
       productList.forEach(product => {
         const cleanProduct = product.trim();
         if (!products[cleanProduct]) {
-          products[cleanProduct] = { totalProfit: 0, count: 0, avgProfit: 0 };
+          products[cleanProduct] = { totalProfit: 0, totalRevenue: 0, count: 0 };
         }
-        products[cleanProduct].totalProfit += liquidProfit;
+        // Distribute revenue/profit proportionally among products in the same order
+        products[cleanProduct].totalProfit += liquidProfit / numProducts;
+        products[cleanProduct].totalRevenue += revenue / numProducts;
         products[cleanProduct].count += 1;
       });
     });
@@ -178,10 +182,11 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
       .map(([name, data]) => ({
         name: name.split(' (')[0].substring(0, 40),
         totalProfit: data.totalProfit,
+        totalRevenue: data.totalRevenue,
         avgProfit: data.totalProfit / data.count,
         count: data.count,
       }))
-      .sort((a, b) => b.totalProfit - a.totalProfit)
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
       .slice(0, 12);
   }, [filteredOrders]);
 

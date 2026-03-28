@@ -29,3 +29,12 @@
 - [x] Exibir insights categorizados: pontos fortes, alertas, oportunidades e recomendações
 - [x] Mostrar estado de carregamento com skeleton durante geração
 - [x] Escrever testes para o endpoint de insights
+
+## Melhorias de Visualização e Metas
+- [x] Substituir pizza de "Distribuição por Status" por pizza de "Rentabilidade por Produto" na Visão Geral
+- [x] Pizza de rentabilidade: cada fatia = faturamento do produto; tooltip mostra faturamento + lucro acumulado
+- [x] Manter seção "Rentabilidade por Produto (Top 12)" com barras horizontais
+- [x] Aba Metas: vincular meta semanal × 4 = meta mensal (e vice-versa) automaticamente
+- [x] Aba Metas: ao digitar lucro, calcular faturamento automaticamente pela margem real do período
+- [x] Aba Metas: ao digitar faturamento, calcular lucro automaticamente pela margem real do período
+- [x] Exibir margem atual (%) usada como base para os cálculos automáticos
