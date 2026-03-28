@@ -170,14 +170,14 @@ export default function Dashboard() {
             color="primary"
           />
           <MetricCard
-            label="Receita Total"
+            label="Valor da Venda"
             value={metrics.totalRevenue}
             format="currency"
             icon={<DollarSign />}
             color="success"
           />
           <MetricCard
-            label="Lucro Total"
+            label="Lucro Líquido"
             value={metrics.totalProfit}
             format="currency"
             icon={<TrendingUp />}

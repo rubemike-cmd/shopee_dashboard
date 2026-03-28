@@ -5,7 +5,7 @@ export interface Order {
   'Número do Pedido': number;
   'Número do Pedido no Canal': string;
   'Cliente': string;
-  'Email do Cliente': string;
+  'Email do Cliente': string | null;
   'Telefone do Cliente': string;
   'Endereço do Cliente': string;
   'Cidade do Cliente': string;
@@ -14,9 +14,8 @@ export interface Order {
   'Canal': string;
   'Empresa': string;
   'Status': string;
-  'Valor Total': number;
   'Custo Total': number;
-  'Lucro Total': number;
+  'valor da venda': number;
   'Líquido Total': number;
   'Modo de Logística': string;
   'Produtos': string;
@@ -61,9 +60,9 @@ export function useOrdersAnalysis(filters: FilterOptions = {}) {
 
   const metrics = useMemo(() => {
     const totalOrders = filteredOrders.length;
-    const totalRevenue = filteredOrders.reduce((sum, o) => sum + o['Valor Total'], 0);
+    const totalRevenue = filteredOrders.reduce((sum, o) => sum + o['valor da venda'], 0);
     const totalCost = filteredOrders.reduce((sum, o) => sum + o['Custo Total'], 0);
-    const totalProfit = filteredOrders.reduce((sum, o) => sum + o['Lucro Total'], 0);
+    const totalProfit = filteredOrders.reduce((sum, o) => sum + o['Líquido Total'], 0);
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
 
@@ -123,8 +122,8 @@ export function useOrdersAnalysis(filters: FilterOptions = {}) {
       if (!byDate[date]) {
         byDate[date] = { revenue: 0, profit: 0, count: 0 };
       }
-      byDate[date].revenue += order['Valor Total'];
-      byDate[date].profit += order['Lucro Total'];
+      byDate[date].revenue += order['valor da venda'];
+      byDate[date].profit += order['Líquido Total'];
       byDate[date].count += 1;
     });
 
@@ -158,17 +157,17 @@ export function useOrdersAnalysis(filters: FilterOptions = {}) {
   }, [filteredOrders]);
 
   const uniqueStates = useMemo(() => {
-    const states = new Set(ordersData.map(o => o['Estado do Cliente']));
+    const states = new Set((ordersData as Order[]).map(o => o['Estado do Cliente']));
     return Array.from(states).sort();
   }, []);
 
   const uniqueStatuses = useMemo(() => {
-    const statuses = new Set(ordersData.map(o => o.Status));
+    const statuses = new Set((ordersData as Order[]).map(o => o.Status));
     return Array.from(statuses).sort();
   }, []);
 
   const uniqueLogistics = useMemo(() => {
-    const logistics = new Set(ordersData.map(o => o['Modo de Logística']));
+    const logistics = new Set((ordersData as Order[]).map(o => o['Modo de Logística']));
     return Array.from(logistics).sort();
   }, []);
 
