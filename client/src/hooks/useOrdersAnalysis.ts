@@ -156,6 +156,34 @@ export function useOrdersAnalysis(filters: FilterOptions = {}) {
       .slice(0, 10);
   }, [filteredOrders]);
 
+  const productProfitability = useMemo(() => {
+    const products: Record<string, { totalProfit: number; count: number; avgProfit: number }> = {};
+    
+    filteredOrders.forEach(order => {
+      const productList = order['Produtos'].split(',');
+      const liquidProfit = order['Líquido Total'];
+      
+      productList.forEach(product => {
+        const cleanProduct = product.trim();
+        if (!products[cleanProduct]) {
+          products[cleanProduct] = { totalProfit: 0, count: 0, avgProfit: 0 };
+        }
+        products[cleanProduct].totalProfit += liquidProfit;
+        products[cleanProduct].count += 1;
+      });
+    });
+
+    return Object.entries(products)
+      .map(([name, data]) => ({
+        name: name.split(' (')[0].substring(0, 40),
+        totalProfit: data.totalProfit,
+        avgProfit: data.totalProfit / data.count,
+        count: data.count,
+      }))
+      .sort((a, b) => b.totalProfit - a.totalProfit)
+      .slice(0, 12);
+  }, [filteredOrders]);
+
   const uniqueStates = useMemo(() => {
     const states = new Set((ordersData as Order[]).map(o => o['Estado do Cliente']));
     return Array.from(states).sort();
@@ -179,6 +207,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}) {
     logisticsDistribution,
     revenueByDate,
     topProducts,
+    productProfitability,
     uniqueStates,
     uniqueStatuses,
     uniqueLogistics,

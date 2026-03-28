@@ -4,6 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Package, TrendingUp, Truck, DollarSign } from 'lucide-react';
 import MetricCard from '@/components/MetricCard';
+import OrdersTable from '@/components/OrdersTable';
+import LogisticsAnalysis from '@/components/LogisticsAnalysis';
 import { useOrdersAnalysis, FilterOptions } from '@/hooks/useOrdersAnalysis';
 
 const COLORS = ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#EF4444'];
@@ -15,14 +17,17 @@ export default function Dashboard() {
     estado: false,
     logistica: false,
   });
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'logistics'>('overview');
 
   const {
+    filteredOrders,
     metrics,
     statusDistribution,
     stateDistribution,
     logisticsDistribution,
     revenueByDate,
     topProducts,
+    productProfitability,
     uniqueStates,
     uniqueStatuses,
     uniqueLogistics,
@@ -258,6 +263,43 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Tabs Navigation */}
+        <div className="mb-8 flex gap-4 border-b border-border">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`pb-3 px-4 font-semibold transition-colors ${
+              activeTab === 'overview'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Visão Geral
+          </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`pb-3 px-4 font-semibold transition-colors ${
+              activeTab === 'orders'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Pedidos
+          </button>
+          <button
+            onClick={() => setActiveTab('logistics')}
+            className={`pb-3 px-4 font-semibold transition-colors ${
+              activeTab === 'logistics'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Logística
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
         {/* Second Row Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Top States */}
@@ -301,13 +343,57 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Product Profitability */}
+        <Card className="chart-container">
+          <h3 className="text-heading mb-4">Rentabilidade por Produto</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={productProfitability} layout="vertical" margin={{ top: 5, right: 30, left: 250, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis type="number" stroke="#9CA3AF" style={{ fontSize: '12px' }} />
+              <YAxis dataKey="name" type="category" stroke="#9CA3AF" style={{ fontSize: '11px' }} width={240} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '8px',
+                }}
+                formatter={(value) => `R$ ${(value as number).toFixed(2)}`}
+              />
+              <Legend />
+              <Bar dataKey="totalProfit" fill="#10B981" name="Lucro Total" radius={[0, 8, 8, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* Product Profitability */}
+        <Card className="chart-container">
+          <h3 className="text-heading mb-4">Rentabilidade por Produto (Top 12)</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={productProfitability} layout="vertical" margin={{ top: 5, right: 30, left: 250, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis type="number" stroke="#9CA3AF" style={{ fontSize: '12px' }} />
+              <YAxis dataKey="name" type="category" stroke="#9CA3AF" style={{ fontSize: '11px' }} width={240} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '8px',
+                }}
+                formatter={(value) => `R$ ${(value as number).toFixed(2)}`}
+              />
+              <Legend />
+              <Bar dataKey="totalProfit" fill="#10B981" name="Lucro Total" radius={[0, 8, 8, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+
         {/* Top Products */}
         <Card className="chart-container">
-          <h3 className="text-heading mb-4">Top 10 Produtos</h3>
+          <h3 className="text-heading mb-4">Top 10 Produtos Mais Vendidos</h3>
           <div className="space-y-3">
             {topProducts.map((product, index) => (
               <div key={index} className="flex items-center justify-between">
-                <span className="text-sm flex-1">{product.name}</span>
+                <span className="text-sm flex-1 truncate">{product.name}</span>
                 <div className="flex items-center gap-2">
                   <div className="w-32 bg-secondary rounded-full h-2">
                     <div
@@ -325,6 +411,18 @@ export default function Dashboard() {
             ))}
           </div>
         </Card>
+          </>
+        )}
+
+        {/* Orders Tab */}
+        {activeTab === 'orders' && (
+          <OrdersTable orders={filteredOrders} />
+        )}
+
+        {/* Logistics Tab */}
+        {activeTab === 'logistics' && (
+          <LogisticsAnalysis orders={filteredOrders} />
+        )}
       </div>
     </div>
   );
