@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import { storagePut } from "./storage";
 import { getDb } from "./db";
 import { spreadsheetUploads } from "../drizzle/schema";
+import { validateSpreadsheetColumns } from "./spreadsheetValidator";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -45,6 +46,24 @@ export function registerUploadRoutes(app: express.Express) {
         const worksheet = workbook.Sheets[sheetName];
         const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: null });
 
+        if (rawData.length === 0) {
+          return res.status(400).json({
+            error: "A planilha está vazia. Nenhum pedido encontrado.",
+            validation: { valid: false, missingRequired: [], missingOptional: [], unrecognized: [], columnMapping: {}, warnings: [] },
+          });
+        }
+
+        // Validate columns
+        const sheetColumns = Object.keys(rawData[0] as Record<string, unknown>);
+        const validation = validateSpreadsheetColumns(sheetColumns);
+
+        if (!validation.valid) {
+          return res.status(422).json({
+            error: `Planilha inválida: ${validation.missingRequired.length} coluna(s) obrigatória(s) ausente(s).`,
+            validation,
+          });
+        }
+
         const totalOrders = rawData.length;
 
         // Upload to S3
@@ -74,6 +93,7 @@ export function registerUploadRoutes(app: express.Express) {
           fileUrl,
           totalOrders,
           data: rawData,
+          validation,
         });
       } catch (err: any) {
         console.error("[Upload] Error:", err);

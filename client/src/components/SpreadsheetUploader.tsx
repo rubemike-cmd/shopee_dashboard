@@ -1,22 +1,37 @@
 import { useState, useRef, useCallback } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, X, Clock, RefreshCw } from 'lucide-react';
+import {
+  Upload, FileSpreadsheet, CheckCircle2, AlertCircle, X,
+  Clock, RefreshCw, AlertTriangle, Info, ChevronDown, ChevronUp
+} from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useOrders } from '@/contexts/OrdersContext';
 import type { Order } from '@/hooks/useOrdersAnalysis';
 
+interface ValidationResult {
+  valid: boolean;
+  missingRequired: string[];
+  missingOptional: string[];
+  unrecognized: string[];
+  columnMapping: Record<string, string>;
+  warnings: string[];
+}
+
 interface UploadHistory {
   filename: string;
   uploadedAt: string;
   totalOrders: number;
+  hadWarnings: boolean;
 }
 
 export default function SpreadsheetUploader() {
   const { setOrders, setLastUpload, lastUpload, resetToDefault } = useOrders();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'warning' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [showValidationDetails, setShowValidationDetails] = useState(false);
   const [uploadHistory, setUploadHistory] = useState<UploadHistory[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,12 +41,15 @@ export default function SpreadsheetUploader() {
       if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
         setUploadStatus('error');
         setErrorMessage('Apenas arquivos .xlsx e .xls são aceitos.');
+        setValidation(null);
         return;
       }
 
       setIsUploading(true);
       setUploadStatus('idle');
       setErrorMessage('');
+      setValidation(null);
+      setShowValidationDetails(false);
 
       try {
         const formData = new FormData();
@@ -44,9 +62,24 @@ export default function SpreadsheetUploader() {
 
         const result = await response.json();
 
-        if (!response.ok) {
-          throw new Error(result.error || 'Erro ao processar arquivo');
+        // Handle validation errors (422 = colunas ausentes)
+        if (response.status === 422) {
+          setValidation(result.validation as ValidationResult);
+          setUploadStatus('error');
+          setErrorMessage(result.error || 'Planilha inválida: colunas obrigatórias ausentes.');
+          setShowValidationDetails(true);
+          return;
         }
+
+        if (!response.ok) {
+          setUploadStatus('error');
+          setErrorMessage(result.error || 'Erro ao processar arquivo');
+          return;
+        }
+
+        // Save validation result (may have warnings even on success)
+        const validationResult = result.validation as ValidationResult | undefined;
+        setValidation(validationResult ?? null);
 
         // Map the raw data to Order type
         const mappedOrders = (result.data as Record<string, unknown>[]).map(row => ({
@@ -86,12 +119,13 @@ export default function SpreadsheetUploader() {
           totalOrders: result.totalOrders,
         });
 
+        const hadWarnings = !!(validationResult?.warnings?.length || validationResult?.missingOptional?.length);
         setUploadHistory(prev => [
-          { filename: result.filename, uploadedAt: new Date().toISOString(), totalOrders: result.totalOrders },
+          { filename: result.filename, uploadedAt: new Date().toISOString(), totalOrders: result.totalOrders, hadWarnings },
           ...prev.slice(0, 4),
         ]);
 
-        setUploadStatus('success');
+        setUploadStatus(hadWarnings ? 'warning' : 'success');
       } catch (err: unknown) {
         setUploadStatus('error');
         setErrorMessage(err instanceof Error ? err.message : 'Erro desconhecido ao processar arquivo');
@@ -121,6 +155,12 @@ export default function SpreadsheetUploader() {
     [processFile]
   );
 
+  const dismiss = () => {
+    setUploadStatus('idle');
+    setValidation(null);
+    setShowValidationDetails(false);
+  };
+
   return (
     <div className="space-y-4">
       {/* Upload Card */}
@@ -144,7 +184,7 @@ export default function SpreadsheetUploader() {
         </div>
 
         {/* Current data info */}
-        {lastUpload && (
+        {lastUpload && uploadStatus === 'idle' && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
             <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
             <div className="text-sm">
@@ -165,21 +205,11 @@ export default function SpreadsheetUploader() {
           onClick={() => fileInputRef.current?.click()}
           className={`
             relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
-            ${isDragging
-              ? 'border-primary bg-primary/5 scale-[1.01]'
-              : 'border-border hover:border-primary/50 hover:bg-secondary/30'
-            }
+            ${isDragging ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-border hover:border-primary/50 hover:bg-secondary/30'}
             ${isUploading ? 'pointer-events-none opacity-70' : ''}
           `}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" />
           <div className="flex flex-col items-center gap-3">
             {isUploading ? (
               <>
@@ -188,7 +218,7 @@ export default function SpreadsheetUploader() {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">Processando planilha...</p>
-                  <p className="text-sm text-muted-foreground mt-1">Aguarde enquanto os dados são carregados</p>
+                  <p className="text-sm text-muted-foreground mt-1">Validando colunas e carregando dados</p>
                 </div>
               </>
             ) : (
@@ -209,28 +239,164 @@ export default function SpreadsheetUploader() {
           </div>
         </div>
 
-        {/* Status Messages */}
+        {/* ── SUCCESS ── */}
         {uploadStatus === 'success' && (
-          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-            <p className="text-sm text-green-800 font-medium">
-              Planilha carregada com sucesso! O dashboard foi atualizado com os novos dados.
-            </p>
-            <button onClick={() => setUploadStatus('idle')} className="ml-auto text-green-600 hover:text-green-800">
-              <X className="w-4 h-4" />
-            </button>
+          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+            <div className="flex-1 text-sm">
+              <p className="font-semibold text-green-800">Planilha carregada com sucesso!</p>
+              <p className="text-green-700 mt-0.5">Todas as colunas obrigatórias foram encontradas. O dashboard foi atualizado.</p>
+            </div>
+            <button onClick={dismiss} className="text-green-600 hover:text-green-800 shrink-0"><X className="w-4 h-4" /></button>
           </div>
         )}
 
-        {uploadStatus === 'error' && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-            <p className="text-sm text-red-800">{errorMessage}</p>
-            <button onClick={() => setUploadStatus('idle')} className="ml-auto text-red-600 hover:text-red-800">
-              <X className="w-4 h-4" />
-            </button>
+        {/* ── WARNING (success with missing optional columns) ── */}
+        {uploadStatus === 'warning' && (
+          <div className="mt-3 border border-amber-200 rounded-lg overflow-hidden">
+            <div className="p-3 bg-amber-50 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1 text-sm">
+                <p className="font-semibold text-amber-800">Planilha carregada com avisos</p>
+                <p className="text-amber-700 mt-0.5">Os dados foram importados, mas algumas colunas opcionais estão ausentes.</p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => setShowValidationDetails(v => !v)}
+                  className="text-amber-600 hover:text-amber-800 flex items-center gap-1 text-xs font-medium"
+                >
+                  {showValidationDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  {showValidationDetails ? 'Ocultar' : 'Ver detalhes'}
+                </button>
+                <button onClick={dismiss} className="text-amber-600 hover:text-amber-800 ml-1"><X className="w-4 h-4" /></button>
+              </div>
+            </div>
+            {showValidationDetails && validation && (
+              <div className="p-3 bg-amber-50/50 border-t border-amber-100 space-y-2">
+                {validation.missingOptional.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-amber-700 mb-1">Colunas opcionais ausentes:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {validation.missingOptional.map(col => (
+                        <span key={col} className="inline-flex items-center px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs font-mono">
+                          {col}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {validation.unrecognized.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-amber-700 mb-1">Colunas não reconhecidas (serão ignoradas):</p>
+                    <div className="flex flex-wrap gap-1">
+                      {validation.unrecognized.map(col => (
+                        <span key={col} className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs font-mono">
+                          {col}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
+
+        {/* ── ERROR (missing required columns or other errors) ── */}
+        {uploadStatus === 'error' && (
+          <div className="mt-3 border border-red-200 rounded-lg overflow-hidden">
+            <div className="p-3 bg-red-50 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex-1 text-sm">
+                <p className="font-semibold text-red-800">Erro ao carregar planilha</p>
+                <p className="text-red-700 mt-0.5">{errorMessage}</p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {validation && validation.missingRequired.length > 0 && (
+                  <button
+                    onClick={() => setShowValidationDetails(v => !v)}
+                    className="text-red-600 hover:text-red-800 flex items-center gap-1 text-xs font-medium"
+                  >
+                    {showValidationDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    {showValidationDetails ? 'Ocultar' : 'Ver detalhes'}
+                  </button>
+                )}
+                <button onClick={dismiss} className="text-red-600 hover:text-red-800 ml-1"><X className="w-4 h-4" /></button>
+              </div>
+            </div>
+
+            {/* Validation details panel */}
+            {showValidationDetails && validation && (
+              <div className="p-4 bg-red-50/50 border-t border-red-100 space-y-4">
+                {/* Missing required */}
+                {validation.missingRequired.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-red-700 mb-2 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      Colunas obrigatórias ausentes ({validation.missingRequired.length}):
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {validation.missingRequired.map(col => (
+                        <span key={col} className="inline-flex items-center px-2.5 py-1 rounded-md bg-red-100 text-red-800 text-xs font-mono font-semibold border border-red-200">
+                          {col}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Found columns */}
+                {Object.keys(validation.columnMapping).length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-green-700 mb-2 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Colunas encontradas ({Object.keys(validation.columnMapping).length}):
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.keys(validation.columnMapping).map(col => (
+                        <span key={col} className="inline-flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-mono border border-green-200">
+                          {col}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Help tip */}
+                <div className="flex items-start gap-2 p-2.5 bg-blue-50 border border-blue-100 rounded-lg">
+                  <Info className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-700">
+                    Verifique se os nomes das colunas na sua planilha correspondem exatamente aos nomes esperados.
+                    O sistema aceita variações como acentos e capitalização diferente.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Required columns reference */}
+        <details className="mt-4 group">
+          <summary className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
+            <Info className="w-3.5 h-3.5" />
+            <span>Ver colunas obrigatórias esperadas</span>
+            <ChevronDown className="w-3 h-3 ml-auto group-open:rotate-180 transition-transform" />
+          </summary>
+          <div className="mt-3 p-3 bg-secondary/30 rounded-lg">
+            <p className="text-xs text-muted-foreground mb-2">As seguintes colunas são obrigatórias na planilha:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                'Número do Pedido', 'Status', 'valor da venda',
+                'Líquido Total', 'Custo Total', 'Estado do Cliente',
+                'Modo de Logística', 'Data de Criação', 'Produtos'
+              ].map(col => (
+                <span key={col} className="inline-flex items-center px-2 py-0.5 rounded bg-background border border-border text-xs font-mono text-foreground">
+                  {col}
+                </span>
+              ))}
+            </div>
+          </div>
+        </details>
       </Card>
 
       {/* Upload History */}
@@ -253,6 +419,9 @@ export default function SpreadsheetUploader() {
                 <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30 text-sm">
                   <FileSpreadsheet className="w-4 h-4 text-primary shrink-0" />
                   <span className="font-medium truncate flex-1">{item.filename}</span>
+                  {item.hadWarnings && (
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-label="Carregado com avisos" />
+                  )}
                   <span className="text-muted-foreground shrink-0">{item.totalOrders} pedidos</span>
                   <span className="text-muted-foreground shrink-0 text-xs">
                     {new Date(item.uploadedAt).toLocaleTimeString('pt-BR')}
