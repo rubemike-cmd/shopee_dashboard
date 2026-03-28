@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { orders as ordersData } from '@/data/orders';
+import { orders as defaultOrdersData } from '@/data/orders';
 
 export interface Order {
   'Número do Pedido': number;
@@ -31,7 +31,8 @@ export interface FilterOptions {
   dataFim?: string;
 }
 
-export function useOrdersAnalysis(filters: FilterOptions = {}) {
+export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: Order[]) {
+  const ordersData = externalOrders ?? (defaultOrdersData as Order[]);
   const filteredOrders = useMemo(() => {
     let orders = [...ordersData] as Order[];
 

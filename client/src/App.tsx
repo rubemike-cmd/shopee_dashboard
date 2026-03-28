@@ -4,10 +4,11 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { OrdersProvider } from "./contexts/OrdersContext";
 import Dashboard from "./pages/Dashboard";
 
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
@@ -32,7 +33,9 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <OrdersProvider>
+            <Router />
+          </OrdersProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

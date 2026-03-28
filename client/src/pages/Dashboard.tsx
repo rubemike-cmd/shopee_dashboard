@@ -9,6 +9,8 @@ import LogisticsAnalysis from '@/components/LogisticsAnalysis';
 import GoalsTracker from '@/components/GoalsTracker';
 import { useOrdersAnalysis, FilterOptions } from '@/hooks/useOrdersAnalysis';
 import { useGoalsAnalysis } from '@/hooks/useGoalsAnalysis';
+import { useOrders } from '@/contexts/OrdersContext';
+import SpreadsheetUploader from '@/components/SpreadsheetUploader';
 
 const COLORS = ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#EF4444'];
 
@@ -19,7 +21,8 @@ export default function Dashboard() {
     estado: false,
     logistica: false,
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'logistics' | 'goals'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'logistics' | 'goals' | 'upload'>('overview');
+  const { orders: contextOrders } = useOrders();
 
   const {
     filteredOrders,
@@ -33,7 +36,7 @@ export default function Dashboard() {
     uniqueStates,
     uniqueStatuses,
     uniqueLogistics,
-  } = useOrdersAnalysis(filters);
+  } = useOrdersAnalysis(filters, contextOrders);
 
   const {
     goals,
@@ -316,6 +319,21 @@ export default function Dashboard() {
           >
             Logística
           </button>
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`pb-3 px-4 font-semibold transition-colors whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'upload'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <span>Atualizar Dados</span>
+            {contextOrders.length > 0 && (
+              <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-primary text-primary-foreground rounded-full">
+                !
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -455,6 +473,11 @@ export default function Dashboard() {
         {/* Logistics Tab */}
         {activeTab === 'logistics' && (
           <LogisticsAnalysis orders={filteredOrders} />
+        )}
+
+        {/* Upload Tab */}
+        {activeTab === 'upload' && (
+          <SpreadsheetUploader />
         )}
       </div>
     </div>
