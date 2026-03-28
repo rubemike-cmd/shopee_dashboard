@@ -1,0 +1,187 @@
+import { useMemo } from 'react';
+import { orders as ordersData } from '@/data/orders';
+
+export interface Order {
+  'Número do Pedido': number;
+  'Número do Pedido no Canal': string;
+  'Cliente': string;
+  'Email do Cliente': string;
+  'Telefone do Cliente': string;
+  'Endereço do Cliente': string;
+  'Cidade do Cliente': string;
+  'Estado do Cliente': string;
+  'CEP do Cliente': string;
+  'Canal': string;
+  'Empresa': string;
+  'Status': string;
+  'Valor Total': number;
+  'Custo Total': number;
+  'Lucro Total': number;
+  'Líquido Total': number;
+  'Modo de Logística': string;
+  'Produtos': string;
+  'Data de Criação': string;
+  'Data de Atualização': string;
+}
+
+export interface FilterOptions {
+  status?: string[];
+  estado?: string[];
+  logistica?: string[];
+  dataInicio?: string;
+  dataFim?: string;
+}
+
+export function useOrdersAnalysis(filters: FilterOptions = {}) {
+  const filteredOrders = useMemo(() => {
+    let orders = [...ordersData] as Order[];
+
+    if (filters.status && filters.status.length > 0) {
+      orders = orders.filter(o => filters.status!.includes(o.Status));
+    }
+
+    if (filters.estado && filters.estado.length > 0) {
+      orders = orders.filter(o => filters.estado!.includes(o['Estado do Cliente']));
+    }
+
+    if (filters.logistica && filters.logistica.length > 0) {
+      orders = orders.filter(o => filters.logistica!.includes(o['Modo de Logística']));
+    }
+
+    if (filters.dataInicio) {
+      orders = orders.filter(o => o['Data de Criação'] >= filters.dataInicio!);
+    }
+
+    if (filters.dataFim) {
+      orders = orders.filter(o => o['Data de Criação'] <= filters.dataFim!);
+    }
+
+    return orders;
+  }, [filters]);
+
+  const metrics = useMemo(() => {
+    const totalOrders = filteredOrders.length;
+    const totalRevenue = filteredOrders.reduce((sum, o) => sum + o['Valor Total'], 0);
+    const totalCost = filteredOrders.reduce((sum, o) => sum + o['Custo Total'], 0);
+    const totalProfit = filteredOrders.reduce((sum, o) => sum + o['Lucro Total'], 0);
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalCost,
+      totalProfit,
+      avgOrderValue,
+      profitMargin,
+    };
+  }, [filteredOrders]);
+
+  const statusDistribution = useMemo(() => {
+    const distribution: Record<string, number> = {};
+    filteredOrders.forEach(order => {
+      distribution[order.Status] = (distribution[order.Status] || 0) + 1;
+    });
+    return Object.entries(distribution).map(([status, count]) => ({
+      name: status,
+      value: count,
+      percentage: (count / filteredOrders.length) * 100,
+    }));
+  }, [filteredOrders]);
+
+  const stateDistribution = useMemo(() => {
+    const distribution: Record<string, number> = {};
+    filteredOrders.forEach(order => {
+      const state = order['Estado do Cliente'];
+      distribution[state] = (distribution[state] || 0) + 1;
+    });
+    return Object.entries(distribution)
+      .map(([state, count]) => ({
+        name: state,
+        value: count,
+        percentage: (count / filteredOrders.length) * 100,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredOrders]);
+
+  const logisticsDistribution = useMemo(() => {
+    const distribution: Record<string, number> = {};
+    filteredOrders.forEach(order => {
+      distribution[order['Modo de Logística']] = (distribution[order['Modo de Logística']] || 0) + 1;
+    });
+    return Object.entries(distribution).map(([logistics, count]) => ({
+      name: logistics,
+      value: count,
+      percentage: (count / filteredOrders.length) * 100,
+    }));
+  }, [filteredOrders]);
+
+  const revenueByDate = useMemo(() => {
+    const byDate: Record<string, { revenue: number; profit: number; count: number }> = {};
+    filteredOrders.forEach(order => {
+      const date = order['Data de Criação'];
+      if (!byDate[date]) {
+        byDate[date] = { revenue: 0, profit: 0, count: 0 };
+      }
+      byDate[date].revenue += order['Valor Total'];
+      byDate[date].profit += order['Lucro Total'];
+      byDate[date].count += 1;
+    });
+
+    return Object.entries(byDate)
+      .map(([date, data]) => ({
+        date,
+        revenue: data.revenue,
+        profit: data.profit,
+        orders: data.count,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [filteredOrders]);
+
+  const topProducts = useMemo(() => {
+    const products: Record<string, number> = {};
+    filteredOrders.forEach(order => {
+      const productList = order['Produtos'].split(',');
+      productList.forEach(product => {
+        const cleanProduct = product.trim().split(' (')[0];
+        products[cleanProduct] = (products[cleanProduct] || 0) + 1;
+      });
+    });
+
+    return Object.entries(products)
+      .map(([product, count]) => ({
+        name: product,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  }, [filteredOrders]);
+
+  const uniqueStates = useMemo(() => {
+    const states = new Set(ordersData.map(o => o['Estado do Cliente']));
+    return Array.from(states).sort();
+  }, []);
+
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set(ordersData.map(o => o.Status));
+    return Array.from(statuses).sort();
+  }, []);
+
+  const uniqueLogistics = useMemo(() => {
+    const logistics = new Set(ordersData.map(o => o['Modo de Logística']));
+    return Array.from(logistics).sort();
+  }, []);
+
+  return {
+    filteredOrders,
+    metrics,
+    statusDistribution,
+    stateDistribution,
+    logisticsDistribution,
+    revenueByDate,
+    topProducts,
+    uniqueStates,
+    uniqueStatuses,
+    uniqueLogistics,
+  };
+}

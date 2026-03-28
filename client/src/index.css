@@ -43,28 +43,28 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
+  --primary: oklch(0.623 0.214 259.815);
+  --primary-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --chart-1: oklch(0.623 0.214 259.815);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.623 0.214 259.815);
+  --chart-4: oklch(0.623 0.214 259.815);
+  --chart-5: oklch(0.623 0.214 259.815);
+  --radius: 0.5rem;
+  --background: oklch(0.98 0.001 286.375);
   --foreground: oklch(0.235 0.015 65);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.235 0.015 65);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
+  --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.4 0.015 65);
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
+  --accent: oklch(0.623 0.214 259.815);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.92 0.004 286.32);
@@ -76,6 +76,9 @@
   --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.623 0.214 259.815);
+  --color-success: oklch(0.577 0.245 142.495);
+  --color-warning: oklch(0.577 0.245 47.604);
+  --color-error: oklch(0.577 0.245 27.325);
 }
 
 .dark {
@@ -174,4 +177,117 @@
       max-width: 1280px; /* Standard content width */
     }
   }
+}
+/* Typography System - Design: Minimalista Corporativo */
+.text-display {
+  @apply font-bold text-3xl tracking-tight;
+  font-family: var(--font-display);
+}
+
+.text-heading {
+  @apply font-semibold text-xl;
+  font-family: var(--font-display);
+}
+
+.text-body {
+  @apply font-normal text-sm;
+  font-family: var(--font-body);
+}
+
+.text-mono {
+  @apply font-medium text-base;
+  font-family: var(--font-mono);
+}
+
+/* Metric Card Styles */
+.metric-card {
+  @apply bg-card text-card-foreground rounded-lg p-6 shadow-sm border border-border transition-all duration-200;
+}
+
+.metric-card:hover {
+  @apply shadow-md;
+}
+
+.metric-value {
+  @apply text-3xl font-bold;
+  font-family: var(--font-mono);
+}
+
+.metric-label {
+  @apply text-xs text-muted-foreground uppercase tracking-wide;
+}
+
+.metric-change {
+  @apply text-xs font-semibold mt-2 flex items-center gap-1;
+}
+
+.metric-change.positive {
+  @apply text-green-600;
+}
+
+.metric-change.negative {
+  @apply text-red-600;
+}
+
+/* Chart Container */
+.chart-container {
+  @apply bg-card text-card-foreground rounded-lg p-6 shadow-sm border border-border;
+}
+
+/* Status Badge */
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-shipped {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-wms {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.status-picked {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.status-packed {
+  @apply bg-purple-100 text-purple-800;
+}
+
+.status-waiting_expedition {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.status-refunded {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-count-up {
+  animation: countUp 0.6s ease-out;
 }
