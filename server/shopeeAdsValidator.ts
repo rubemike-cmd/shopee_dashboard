@@ -76,6 +76,14 @@ const REQUIRED_COLUMNS = [
   'ACOS Direto',
 ];
 
+// Colunas opcionais que podem estar presentes no arquivo
+const OPTIONAL_COLUMNS = [
+  'Criativo',
+  'Impressões do Produto',
+  'Cliques de Produtos',
+  'CTR do Produto',
+];
+
 export function validateShopeeAdsHeaders(headers: string[]): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
