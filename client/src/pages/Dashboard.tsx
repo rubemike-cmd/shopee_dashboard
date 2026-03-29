@@ -15,12 +15,13 @@ import { useOrders } from '@/contexts/OrdersContext';
 import { usePdfReport } from '@/hooks/usePdfReport';
 import SpreadsheetUploader from '@/components/SpreadsheetUploader';
 import InsightsPanel from '@/components/InsightsPanel';
+import { ShopeeAdsDashboard } from '@/components/ShopeeAdsDashboard';
 
 const COLORS = ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#EF4444'];
 
 export default function Dashboard() {
   const [filters, setFilters] = useState<FilterOptions>({});
-  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'orders' | 'logistics' | 'goals' | 'upload'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'orders' | 'logistics' | 'goals' | 'upload' | 'shopee-ads'>('overview');
   const { orders: contextOrders } = useOrders();
   const { generatePdf, isGenerating } = usePdfReport();
 
@@ -126,6 +127,7 @@ export default function Dashboard() {
     { id: 'goals', label: 'Metas' },
     { id: 'orders', label: 'Pedidos' },
     { id: 'logistics', label: 'Logística' },
+    { id: 'shopee-ads', label: '📊 Shopee Ads' },
     { id: 'upload', label: 'Atualizar Dados' },
   ] as const;
 
@@ -502,6 +504,7 @@ export default function Dashboard() {
 
         {activeTab === 'orders' && <OrdersTable orders={filteredOrders} />}
         {activeTab === 'logistics' && <LogisticsAnalysis orders={filteredOrders} />}
+        {activeTab === 'shopee-ads' && <ShopeeAdsDashboard />}
         {activeTab === 'upload' && <SpreadsheetUploader />}
       </div>
     </div>

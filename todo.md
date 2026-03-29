@@ -53,6 +53,6 @@
 - [x] Implementar KPIs principais: Impressões, Cliques, CTR, Conversões, ROAS, ACOS
 - [x] Criar gráficos: Performance por anúncio, CTR vs Conversão, ROAS vs ACOS, Gastos vs Receita
 - [x] Implementar tabela de anúncios com filtros e ordenação
-- [ ] Criar endpoint de insights de Shopee Ads com LLM
-- [ ] Integrar aba de Shopee Ads ao dashboard com todas as funcionalidades
+- [x] Criar endpoint de insights de Shopee Ads com LLM
+- [x] Integrar aba de Shopee Ads ao dashboard com todas as funcionalidades
 - [x] Escrever testes para routers e validações de Shopee Ads

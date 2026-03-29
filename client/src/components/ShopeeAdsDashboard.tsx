@@ -7,6 +7,7 @@ import { ShopeeAdsUploader } from "./ShopeeAdsUploader";
 import { useShopeeAdsAnalysis, getAdPerformanceCategory, getACOSStatus, ShopeeAd } from "@/hooks/useShopeeAdsAnalysis";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { trpc } from "@/lib/trpc";
+import { ShopeeAdsInsights } from "./ShopeeAdsInsights";
 
 export function ShopeeAdsDashboard() {
   const [ads, setAds] = useState<ShopeeAd[]>([]);
@@ -80,10 +81,11 @@ export function ShopeeAdsDashboard() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="ads">Anúncios</TabsTrigger>
+          <TabsTrigger value="insights">✦ Insights</TabsTrigger>
           <TabsTrigger value="upload">Upload</TabsTrigger>
         </TabsList>
 
@@ -264,6 +266,11 @@ export function ShopeeAdsDashboard() {
               </table>
             </div>
           </Card>
+        </TabsContent>
+
+        {/* Insights Tab */}
+        <TabsContent value="insights">
+          <ShopeeAdsInsights metrics={metrics} />
         </TabsContent>
 
         {/* Upload Tab */}
