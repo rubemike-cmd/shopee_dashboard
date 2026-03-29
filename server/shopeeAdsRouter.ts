@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from "./_core/trpc";
+import { router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { getDb } from "./db";
 import { shopeeAdsData, shopeeAdsUploads, InsertShopeeAdsData } from "../drizzle/schema";
@@ -23,13 +23,21 @@ export const shopeeAdsRouter = router({
       if (!db) throw new Error("Database not available");
 
       try {
+        // Remove BOM if present and normalize line endings
+        let content = input.content;
+        if (content.charCodeAt(0) === 0xFEFF) {
+          content = content.slice(1);
+        }
+        content = content.replace(/\r\n/g, '\n');
+        
         // Remove metadata lines from Shopee CSV (lines before actual headers)
-        const lines = input.content.split('\n');
+        const lines = content.split('\n');
         let dataStartIndex = 0;
         
         // Find the line with actual headers (contains '#' column)
         for (let i = 0; i < lines.length; i++) {
-          if (lines[i].includes('#') && lines[i].includes('Nome do Anúncio')) {
+          const line = lines[i].trim();
+          if (line.startsWith('#') || (line.includes('#') && line.toLowerCase().includes('nome'))) {
             dataStartIndex = i;
             break;
           }
@@ -94,42 +102,14 @@ export const shopeeAdsRouter = router({
               const parsed = parseShopeeAdsRow(row);
               return {
                 uploadId,
-                adNumber: parsed.adNumber || 0,
-                adName: parsed.adName || "",
-                status: parsed.status || "",
-                adType: parsed.adType || "",
-                productId: parsed.productId || "",
-                bidMethod: parsed.bidMethod || "",
-                placement: parsed.placement || "",
-                keyword: parsed.keyword || "",
-                combinationType: parsed.combinationType || "",
-                startDate: parsed.startDate || "",
-                endDate: parsed.endDate || "",
-                impressions: parsed.impressions || 0,
-                clicks: parsed.clicks || 0,
-                ctr: parsed.ctr || 0,
-                conversions: parsed.conversions || 0,
-                directConversions: parsed.directConversions || 0,
-                conversionRate: parsed.conversionRate || 0,
-                directConversionRate: parsed.directConversionRate || 0,
-                costPerConversion: parsed.costPerConversion || 0,
-                costPerDirectConversion: parsed.costPerDirectConversion || 0,
-                itemsSold: parsed.itemsSold || 0,
-                directItemsSold: parsed.directItemsSold || 0,
-                gmv: parsed.gmv || 0,
-                directRevenue: parsed.directRevenue || 0,
-                spend: parsed.spend || 0,
-                roas: parsed.roas || 0,
-                directRoas: parsed.directRoas || 0,
-                acos: parsed.acos || 0,
-                directAcos: parsed.directAcos || 0,
+                ...parsed,
               } as InsertShopeeAdsData;
             } catch (error) {
               console.error("Error parsing row:", error);
               return null;
             }
           })
-          .filter((ad) => ad !== null) as InsertShopeeAdsData[];
+          .filter((row) => row !== null) as InsertShopeeAdsData[];
 
         if (adsData.length > 0) {
           await db.insert(shopeeAdsData).values(adsData);
@@ -146,13 +126,13 @@ export const shopeeAdsRouter = router({
           },
         };
       } catch (error) {
-        console.error('Upload error:', error);
+        console.error("Upload error:", error);
         throw error;
       }
     }),
 
   /**
-   * Get latest Shopee Ads upload
+   * Get latest upload metadata
    */
   getLatestUpload: protectedProcedure.query(async () => {
     const db = await getDb();
@@ -168,13 +148,12 @@ export const shopeeAdsRouter = router({
   }),
 
   /**
-   * Get all ads data from latest upload
+   * Get latest ads data
    */
   getLatestAdsData: protectedProcedure.query(async () => {
     const db = await getDb();
     if (!db) return [];
 
-    // Get latest upload
     const latestUpload = await db
       .select()
       .from(shopeeAdsUploads)
@@ -183,17 +162,16 @@ export const shopeeAdsRouter = router({
 
     if (!latestUpload[0]) return [];
 
-    // Get all ads from that upload
     const ads = await db
       .select()
       .from(shopeeAdsData)
-      .where(eq(shopeeAdsData.uploadId, latestUpload[0]!.id));
+      .where(eq(shopeeAdsData.uploadId, latestUpload[0].id));
 
     return ads;
   }),
 
   /**
-   * Delete upload and associated data
+   * Delete upload and associated ads
    */
   deleteUpload: protectedProcedure
     .input(z.object({ uploadId: z.number() }))
@@ -201,10 +179,7 @@ export const shopeeAdsRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      // Delete ads data first
       await db.delete(shopeeAdsData).where(eq(shopeeAdsData.uploadId, input.uploadId));
-
-      // Delete upload record
       await db.delete(shopeeAdsUploads).where(eq(shopeeAdsUploads.id, input.uploadId));
 
       return { success: true };
