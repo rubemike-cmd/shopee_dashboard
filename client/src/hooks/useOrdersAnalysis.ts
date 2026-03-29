@@ -33,6 +33,54 @@ export interface FilterOptions {
 
 export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: Order[]) {
   const ordersData = externalOrders ?? (defaultOrdersData as Order[]);
+
+  // Normalize state names: "S\u00c3O PAULO" → "SP", "RIO DE JANEIRO" → "RJ", etc.
+  const STATE_NORMALIZE: Record<string, string> = {
+    'S\u00c3O PAULO': 'SP',
+    'SAO PAULO': 'SP',
+    'RIO DE JANEIRO': 'RJ',
+    'MINAS GERAIS': 'MG',
+    'BAHIA': 'BA',
+    'PARAN\u00c1': 'PR',
+    'PARANA': 'PR',
+    'RIO GRANDE DO SUL': 'RS',
+    'SANTA CATARINA': 'SC',
+    'PERNAMBUCO': 'PE',
+    'CEAR\u00c1': 'CE',
+    'CEARA': 'CE',
+    'GOIS': 'GO',
+    'GOI\u00c1S': 'GO',
+    'MATO GROSSO': 'MT',
+    'MATO GROSSO DO SUL': 'MS',
+    'ESP\u00cdRITO SANTO': 'ES',
+    'ESPIRITO SANTO': 'ES',
+    'AMAZONAS': 'AM',
+    'PAR\u00c1': 'PA',
+    'PARA': 'PA',
+    'MARANH\u00c3O': 'MA',
+    'MARANHAO': 'MA',
+    'PIAU\u00cd': 'PI',
+    'PIAUI': 'PI',
+    'RIO GRANDE DO NORTE': 'RN',
+    'PARA\u00cdBA': 'PB',
+    'PARAIBA': 'PB',
+    'ALAGOAS': 'AL',
+    'SERGIPE': 'SE',
+    'ROND\u00d4NIA': 'RO',
+    'RONDONIA': 'RO',
+    'ACRE': 'AC',
+    'RORAIMA': 'RR',
+    'AMAP\u00c1': 'AP',
+    'AMAPA': 'AP',
+    'TOCANTINS': 'TO',
+    'DISTRITO FEDERAL': 'DF',
+  };
+
+  const normalizeState = (s: string) => {
+    const upper = s.trim().toUpperCase();
+    return STATE_NORMALIZE[upper] ?? s.trim();
+  };
+
   const filteredOrders = useMemo(() => {
     let orders = [...ordersData] as Order[];
 
@@ -41,7 +89,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
     }
 
     if (filters.estado && filters.estado.length > 0) {
-      orders = orders.filter(o => filters.estado!.includes(o['Estado do Cliente']));
+      orders = orders.filter(o => filters.estado!.includes(normalizeState(o['Estado do Cliente'])));
     }
 
     if (filters.logistica && filters.logistica.length > 0) {
@@ -92,7 +140,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
   const stateDistribution = useMemo(() => {
     const distribution: Record<string, number> = {};
     filteredOrders.forEach(order => {
-      const state = order['Estado do Cliente'];
+      const state = normalizeState(order['Estado do Cliente']);
       distribution[state] = (distribution[state] || 0) + 1;
     });
     return Object.entries(distribution)
@@ -191,7 +239,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
   }, [filteredOrders]);
 
   const uniqueStates = useMemo(() => {
-    const states = new Set((ordersData as Order[]).map(o => o['Estado do Cliente']));
+    const states = new Set((ordersData as Order[]).map(o => normalizeState(o['Estado do Cliente'])));
     return Array.from(states).sort();
   }, []);
 

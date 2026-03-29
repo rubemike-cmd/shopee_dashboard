@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, TrendingUp, Truck, DollarSign, FileDown, Loader2 } from 'lucide-react';
+import { Package, TrendingUp, Truck, DollarSign, FileDown, Loader2, BarChart2, TrendingUp as TrendingUpIcon, CalendarDays, X as XIcon } from 'lucide-react';
 import MetricCard from '@/components/MetricCard';
 import OrdersTable from '@/components/OrdersTable';
 import LogisticsAnalysis from '@/components/LogisticsAnalysis';
@@ -87,6 +87,39 @@ export default function Dashboard() {
     });
   };
 
+  // Revenue chart state: view mode and inline date range
+  const [revenueView, setRevenueView] = useState<'daily' | 'cumulative'>('daily');
+  const [chartDateStart, setChartDateStart] = useState<string>('');
+  const [chartDateEnd, setChartDateEnd] = useState<string>('');
+  const [showChartCalendar, setShowChartCalendar] = useState(false);
+
+  // Dates available in the data
+  const allDates = useMemo(() => revenueByDate.map(d => d.date), [revenueByDate]);
+  const minDate = allDates[0] ?? '';
+  const maxDate = allDates[allDates.length - 1] ?? '';
+
+  // Filter revenueByDate by inline calendar selection
+  const chartFilteredRevenue = useMemo(() => {
+    if (!chartDateStart && !chartDateEnd) return revenueByDate;
+    return revenueByDate.filter(d => {
+      if (chartDateStart && d.date < chartDateStart) return false;
+      if (chartDateEnd && d.date > chartDateEnd) return false;
+      return true;
+    });
+  }, [revenueByDate, chartDateStart, chartDateEnd]);
+
+  // Build cumulative series
+  const cumulativeRevenue = useMemo(() => {
+    let cumRev = 0, cumPro = 0;
+    return chartFilteredRevenue.map(d => {
+      cumRev += d.revenue;
+      cumPro += d.profit;
+      return { date: d.date, revenue: cumRev, profit: cumPro };
+    });
+  }, [chartFilteredRevenue]);
+
+  const revenueChartData = revenueView === 'daily' ? chartFilteredRevenue : cumulativeRevenue;
+
   const TABS = [
     { id: 'overview', label: 'Visão Geral' },
     { id: 'insights', label: '✦ Insights' },
@@ -170,19 +203,111 @@ export default function Dashboard() {
         {/* Charts Grid (always visible) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <Card className="chart-container" id="chart-revenue-date">
-            <h3 className="text-heading mb-4">Receita por Data</h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={revenueByDate}>
+            {/* Chart header with controls */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <h3 className="text-heading">Receita por Data</h3>
+              <div className="flex items-center gap-2">
+                {/* Daily / Cumulative toggle */}
+                <div className="flex items-center rounded-lg border border-border overflow-hidden text-xs">
+                  <button
+                    onClick={() => setRevenueView('daily')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+                      revenueView === 'daily'
+                        ? 'bg-primary text-primary-foreground font-medium'
+                        : 'bg-background text-muted-foreground hover:bg-secondary'
+                    }`}
+                  >
+                    <BarChart2 className="w-3.5 h-3.5" />
+                    Diário
+                  </button>
+                  <button
+                    onClick={() => setRevenueView('cumulative')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 transition-colors ${
+                      revenueView === 'cumulative'
+                        ? 'bg-primary text-primary-foreground font-medium'
+                        : 'bg-background text-muted-foreground hover:bg-secondary'
+                    }`}
+                  >
+                    <TrendingUpIcon className="w-3.5 h-3.5" />
+                    Acumulado
+                  </button>
+                </div>
+                {/* Calendar toggle button */}
+                <button
+                  onClick={() => setShowChartCalendar(v => !v)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors ${
+                    showChartCalendar || chartDateStart || chartDateEnd
+                      ? 'border-primary bg-primary/10 text-primary font-medium'
+                      : 'border-border bg-background text-muted-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  {chartDateStart || chartDateEnd ? 'Período' : 'Filtrar datas'}
+                </button>
+                {/* Clear inline date filter */}
+                {(chartDateStart || chartDateEnd) && (
+                  <button
+                    onClick={() => { setChartDateStart(''); setChartDateEnd(''); }}
+                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                  >
+                    <XIcon className="w-3 h-3" />
+                    Limpar
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Inline calendar date range picker */}
+            {showChartCalendar && (
+              <div className="mb-4 p-3 rounded-lg border border-border bg-secondary/30 flex flex-wrap items-end gap-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Data inicial</label>
+                  <input
+                    type="date"
+                    value={chartDateStart}
+                    min={minDate}
+                    max={chartDateEnd || maxDate}
+                    onChange={e => setChartDateStart(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Data final</label>
+                  <input
+                    type="date"
+                    value={chartDateEnd}
+                    min={chartDateStart || minDate}
+                    max={maxDate}
+                    onChange={e => setChartDateEnd(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground pb-1">
+                  {chartFilteredRevenue.length} dia{chartFilteredRevenue.length !== 1 ? 's' : ''} no período
+                </p>
+              </div>
+            )}
+
+            {/* Active period badge */}
+            {(chartDateStart || chartDateEnd) && !showChartCalendar && (
+              <p className="text-xs text-primary mb-3">
+                Período: {chartDateStart || minDate} → {chartDateEnd || maxDate} &nbsp;·&nbsp; {chartFilteredRevenue.length} dia{chartFilteredRevenue.length !== 1 ? 's' : ''}
+              </p>
+            )}
+
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={revenueChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                 <XAxis dataKey="date" stroke="#9CA3AF" style={{ fontSize: '11px' }} />
                 <YAxis stroke="#9CA3AF" style={{ fontSize: '11px' }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px' }}
                   formatter={(value) => `R$ ${(value as number).toFixed(2)}`}
+                  labelFormatter={(label) => `Data: ${label}`}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6', r: 3 }} activeDot={{ r: 5 }} name="Receita" />
-                <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981', r: 3 }} activeDot={{ r: 5 }} name="Lucro" />
+                <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6', r: 3 }} activeDot={{ r: 5 }} name={revenueView === 'cumulative' ? 'Receita Acumulada' : 'Receita'} />
+                <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981', r: 3 }} activeDot={{ r: 5 }} name={revenueView === 'cumulative' ? 'Lucro Acumulado' : 'Lucro'} />
               </LineChart>
             </ResponsiveContainer>
           </Card>

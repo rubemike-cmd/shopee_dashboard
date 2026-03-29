@@ -38,3 +38,9 @@
 - [x] Aba Metas: ao digitar lucro, calcular faturamento automaticamente pela margem real do período
 - [x] Aba Metas: ao digitar faturamento, calcular lucro automaticamente pela margem real do período
 - [x] Exibir margem atual (%) usada como base para os cálculos automáticos
+
+## Melhorias de Gráficos, Dados e Busca
+- [x] Normalizar "SÃO PAULO" → "SP" no hook useOrdersAnalysis para unificar estados
+- [x] Adicionar campo de busca por produto na aba Pedidos (filtro em tempo real)
+- [x] Gráfico Receita por Data: toggle entre visualização diária e acumulada
+- [x] Gráfico Receita por Data: adicionar calendário interativo para selecionar intervalo de datas diretamente no gráfico
