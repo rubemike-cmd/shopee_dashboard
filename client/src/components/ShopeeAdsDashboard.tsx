@@ -22,11 +22,16 @@ export function ShopeeAdsDashboard() {
           credentials: "include",
         });
         const result = await response.json();
-        if (result.result?.data) {
-          setAds(result.result.data);
+        const adsData = result?.result?.data;
+        if (Array.isArray(adsData)) {
+          setAds(adsData);
+        } else {
+          console.warn("Invalid ads data format:", adsData);
+          setAds([]);
         }
       } catch (error) {
         console.error("Error fetching ads:", error);
+        setAds([]);
       } finally {
         setIsLoading(false);
       }
