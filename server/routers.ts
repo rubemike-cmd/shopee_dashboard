@@ -7,6 +7,7 @@ import { dashboardGoals } from "../drizzle/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { insightsRouter } from "./insightsRouter";
+import { shopeeAdsRouter } from "./shopeeAdsRouter";
 
 const GOALS_ROW_ID = 1; // Single-row config pattern
 
@@ -22,6 +23,7 @@ export const appRouter = router({
   }),
 
   insights: insightsRouter,
+  shopeeAds: shopeeAdsRouter,
 
   goals: router({
     /**

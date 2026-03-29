@@ -44,3 +44,15 @@
 - [x] Adicionar campo de busca por produto na aba Pedidos (filtro em tempo real)
 - [x] Gráfico Receita por Data: toggle entre visualização diária e acumulada
 - [x] Gráfico Receita por Data: adicionar calendário interativo para selecionar intervalo de datas diretamente no gráfico
+
+
+## Seção Completa de Shopee Ads
+- [x] Criar schema de banco para armazenar dados de Shopee Ads
+- [x] Criar router de upload e processamento de CSV de Shopee Ads
+- [x] Criar componente de upload com validação de colunas
+- [x] Implementar KPIs principais: Impressões, Cliques, CTR, Conversões, ROAS, ACOS
+- [x] Criar gráficos: Performance por anúncio, CTR vs Conversão, ROAS vs ACOS, Gastos vs Receita
+- [x] Implementar tabela de anúncios com filtros e ordenação
+- [ ] Criar endpoint de insights de Shopee Ads com LLM
+- [ ] Integrar aba de Shopee Ads ao dashboard com todas as funcionalidades
+- [x] Escrever testes para routers e validações de Shopee Ads
