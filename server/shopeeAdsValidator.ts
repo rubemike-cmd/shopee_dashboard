@@ -82,12 +82,16 @@ export function validateShopeeAdsHeaders(headers: string[]): ValidationResult {
   const foundColumns: string[] = [];
   const missingColumns: string[] = [];
 
+  // Filter out empty headers (from metadata rows)
+  const filteredHeaders = headers.filter(h => h && h.trim().length > 0);
+  
   // Normalize headers
-  const normalizedHeaders = headers.map(h => h.trim());
+  const normalizedHeaders = filteredHeaders.map(h => h.trim());
 
-  // Check for required columns
+  // Check for required columns (case-insensitive)
   for (const required of REQUIRED_COLUMNS) {
-    if (normalizedHeaders.includes(required)) {
+    const found = normalizedHeaders.some(h => h.toLowerCase() === required.toLowerCase());
+    if (found) {
       foundColumns.push(required);
     } else {
       missingColumns.push(required);

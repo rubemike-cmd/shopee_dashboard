@@ -23,8 +23,22 @@ export const shopeeAdsRouter = router({
       if (!db) throw new Error("Database not available");
 
       try {
+        // Remove metadata lines from Shopee CSV (lines before actual headers)
+        const lines = input.content.split('\n');
+        let dataStartIndex = 0;
+        
+        // Find the line with actual headers (contains '#' column)
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].includes('#') && lines[i].includes('Nome do Anúncio')) {
+            dataStartIndex = i;
+            break;
+          }
+        }
+        
+        const csvContent = lines.slice(dataStartIndex).join('\n');
+        
         // Parse CSV
-        const parseResult = Papa.parse(input.content, {
+        const parseResult = Papa.parse(csvContent, {
           header: true,
           skipEmptyLines: true,
           dynamicTyping: false,
