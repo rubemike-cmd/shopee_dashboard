@@ -14,29 +14,31 @@ export function ShopeeAdsDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch latest ads data
-  useEffect(() => {
-    const fetchAds = async () => {
-      try {
-        const response = await fetch("/api/trpc/shopeeAds.getLatestAdsData", {
-          credentials: "include",
-        });
-        const result = await response.json();
-        const adsData = result?.result?.data;
-        if (Array.isArray(adsData)) {
-          setAds(adsData);
-        } else {
-          console.warn("Invalid ads data format:", adsData);
-          setAds([]);
-        }
-      } catch (error) {
-        console.error("Error fetching ads:", error);
+  // Function to fetch ads data
+  const fetchAds = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/trpc/shopeeAds.getLatestAdsData", {
+        credentials: "include",
+      });
+      const result = await response.json();
+      const adsData = result?.result?.data;
+      if (Array.isArray(adsData)) {
+        setAds(adsData);
+      } else {
+        console.warn("Invalid ads data format:", adsData);
         setAds([]);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching ads:", error);
+      setAds([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Fetch latest ads data on mount
+  useEffect(() => {
     fetchAds();
   }, []);
 
@@ -50,110 +52,132 @@ export function ShopeeAdsDashboard() {
     .sort((a, b) => (b.roas || 0) - (a.roas || 0))
     .slice(0, 10)
     .map((ad) => ({
-      name: ad.adName.substring(0, 30),
+      name: ad.adName.substring(0, 20),
       roas: ad.roas || 0,
       acos: ad.acos || 0,
-      spend: ad.spend || 0,
     }));
 
+  const roasAcosData = filteredAds
+    .map((ad) => ({
+      name: ad.adName.substring(0, 15),
+      roas: ad.roas || 0,
+      acos: ad.acos || 0,
+    }))
+    .slice(0, 8);
+
+  const spendRevenueData = filteredAds
+    .reduce(
+      (acc, ad) => {
+        const existing = acc.find((item) => item.date === ad.adName);
+        const revenue = (ad.spend || 0) * (ad.roas || 0);
+        if (existing) {
+          existing.spend = (existing.spend || 0) + (ad.spend || 0);
+          existing.revenue = (existing.revenue || 0) + revenue;
+        } else {
+          acc.push({
+            date: ad.adName.substring(0, 15),
+            spend: ad.spend || 0,
+            revenue: revenue,
+          });
+        }
+        return acc;
+      },
+      [] as Array<{ date: string; spend: number; revenue: number }>
+    );
+
   const statusData = [
-    { name: "Em Andamento", value: metrics.activeAds, color: "#10b981" },
-    { name: "Pausado", value: metrics.pausedAds, color: "#6b7280" },
+    {
+      name: "Ativo",
+      value: filteredAds.filter((ad) => ad.status === "active").length,
+    },
+    {
+      name: "Pausado",
+      value: filteredAds.filter((ad) => ad.status === "paused").length,
+    },
+    {
+      name: "Encerrado",
+      value: filteredAds.filter((ad) => ad.status === "ended").length,
+    },
   ];
 
-  const roasDistribution = filteredAds
-    .reduce((acc, ad) => {
-      const category = getAdPerformanceCategory(ad.roas || 0);
-      const existing = acc.find((item) => item.name === category);
-      if (existing) {
-        existing.value += 1;
-      } else {
-        acc.push({ name: category, value: 1 });
-      }
-      return acc;
-    }, [] as Array<{ name: string; value: number }>);
-
-  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
+  const COLORS = ["#10b981", "#f59e0b", "#ef4444"];
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="ads">Anúncios</TabsTrigger>
           <TabsTrigger value="insights">✦ Insights</TabsTrigger>
+          <TabsTrigger value="table">Tabela</TabsTrigger>
           <TabsTrigger value="upload">Upload</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-6">
+          {/* KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="p-4">
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total de Anúncios</p>
-                  <p className="text-2xl font-bold">{metrics.totalAds}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {metrics.activeAds} ativos, {metrics.pausedAds} pausados
-                  </p>
+                  <p className="text-sm text-gray-600">Impressões</p>
+                  <p className="text-2xl font-bold">{metrics.totalImpressions.toLocaleString()}</p>
                 </div>
                 <Target className="w-8 h-8 text-blue-500" />
               </div>
             </Card>
 
-            <Card className="p-4">
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Impressões</p>
-                  <p className="text-2xl font-bold">{(metrics.totalImpressions / 1000).toFixed(1)}k</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    CTR: {metrics.avgCTR.toFixed(2)}%
-                  </p>
+                  <p className="text-sm text-gray-600">Cliques</p>
+                  <p className="text-2xl font-bold">{metrics.totalClicks.toLocaleString()}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-500" />
               </div>
             </Card>
 
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Gasto Total</p>
-                  <p className="text-2xl font-bold">R$ {metrics.totalSpend.toFixed(2)}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    ACOS Médio: {metrics.avgACOS.toFixed(1)}%
-                  </p>
-                </div>
-                <DollarSign className="w-8 h-8 text-red-500" />
-              </div>
-            </Card>
-
-            <Card className="p-4">
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">ROAS Médio</p>
                   <p className="text-2xl font-bold">{metrics.avgROAS.toFixed(2)}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    GMV: R$ {metrics.totalGMV.toFixed(2)}
-                  </p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-purple-500" />
+                <DollarSign className="w-8 h-8 text-purple-500" />
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">ACOS Médio</p>
+                  <p className="text-2xl font-bold">{metrics.avgACOS.toFixed(1)}%</p>
+                </div>
+                <TrendingDown className="w-8 h-8 text-red-500" />
               </div>
             </Card>
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="p-4">
-              <h3 className="font-semibold mb-4">Status dos Anúncios</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Performance Chart */}
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4">Performance por Anúncio (Top 10)</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={performanceData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="roas" fill="#10b981" name="ROAS" />
+                  <Bar dataKey="acos" fill="#ef4444" name="ACOS" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            {/* Status Distribution */}
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4">Distribuição de Status</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -167,29 +191,6 @@ export function ShopeeAdsDashboard() {
                     dataKey="value"
                   >
                     {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
-
-            <Card className="p-4">
-              <h3 className="font-semibold mb-4">Distribuição de Performance (ROAS)</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={roasDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {roasDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -197,85 +198,128 @@ export function ShopeeAdsDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             </Card>
+
+            {/* ROAS vs ACOS */}
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4">ROAS vs ACOS</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={roasAcosData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="roas" stroke="#10b981" name="ROAS" />
+                  <Line type="monotone" dataKey="acos" stroke="#ef4444" name="ACOS" />
+                </LineChart>
+              </ResponsiveContainer>
+            </Card>
+
+            {/* Spend vs Revenue */}
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4">Gastos vs Receita</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={spendRevenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="spend" stroke="#ef4444" name="Gastos" />
+                  <Line type="monotone" dataKey="revenue" stroke="#10b981" name="Receita" />
+                </LineChart>
+              </ResponsiveContainer>
+            </Card>
           </div>
         </TabsContent>
 
-        {/* Performance Tab */}
-        <TabsContent value="performance" className="space-y-4">
-          <Card className="p-4">
-            <h3 className="font-semibold mb-4">Top 10 Anúncios por ROAS</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Bar yAxisId="left" dataKey="roas" fill="#3b82f6" name="ROAS" />
-                <Bar yAxisId="right" dataKey="acos" fill="#ef4444" name="ACOS (%)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
+        {/* Insights Tab */}
+        <TabsContent value="insights">
+            <ShopeeAdsInsights metrics={metrics} />
         </TabsContent>
 
-        {/* Ads Tab */}
-        <TabsContent value="ads" className="space-y-4">
-          <Card className="p-4">
+        {/* Table Tab */}
+        <TabsContent value="table">
+          <Card className="p-6">
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Buscar anúncio..."
+                placeholder="Buscar por nome de anúncio..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="px-4 py-2 text-left">Nome</th>
+                    <th className="px-4 py-2 text-left">Anúncio</th>
+                    <th className="px-4 py-2 text-left">Status</th>
                     <th className="px-4 py-2 text-right">Impressões</th>
                     <th className="px-4 py-2 text-right">Cliques</th>
                     <th className="px-4 py-2 text-right">CTR</th>
                     <th className="px-4 py-2 text-right">Conversões</th>
-                    <th className="px-4 py-2 text-right">Gasto</th>
+                    <th className="px-4 py-2 text-right">Gastos</th>
+                    <th className="px-4 py-2 text-right">Receita</th>
                     <th className="px-4 py-2 text-right">ROAS</th>
                     <th className="px-4 py-2 text-right">ACOS</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAds.map((ad) => (
-                    <tr key={ad.id} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-2 font-medium">{ad.adName.substring(0, 40)}</td>
-                      <td className="px-4 py-2 text-right">{ad.impressions}</td>
-                      <td className="px-4 py-2 text-right">{ad.clicks}</td>
-                      <td className="px-4 py-2 text-right">{ad.ctr.toFixed(2)}%</td>
-                      <td className="px-4 py-2 text-right">{ad.conversions}</td>
-                      <td className="px-4 py-2 text-right">R$ {ad.spend.toFixed(2)}</td>
-                      <td className={`px-4 py-2 text-right font-semibold ${
-                        ad.roas >= 3 ? "text-green-600" : ad.roas >= 1 ? "text-yellow-600" : "text-red-600"
-                      }`}>
-                        {ad.roas.toFixed(2)}
-                      </td>
-                      <td className={`px-4 py-2 text-right font-semibold ${
-                        ad.acos <= 35 ? "text-green-600" : ad.acos <= 50 ? "text-yellow-600" : "text-red-600"
-                      }`}>
-                        {ad.acos.toFixed(1)}%
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={10} className="px-4 py-8 text-center">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                       </td>
                     </tr>
-                  ))}
+                  ) : filteredAds.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
+                        Nenhum anúncio encontrado
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAds.map((ad) => (
+                      <tr key={ad.id} className="border-b hover:bg-gray-50">
+                        <td className="px-4 py-2">{ad.adName}</td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-semibold ${
+                              ad.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : ad.status === "paused"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {ad.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-right">{ad.impressions.toLocaleString()}</td>
+                        <td className="px-4 py-2 text-right">{ad.clicks.toLocaleString()}</td>
+                        <td className="px-4 py-2 text-right">{ad.ctr.toFixed(2)}%</td>
+                        <td className="px-4 py-2 text-right">{ad.conversions.toLocaleString()}</td>
+                        <td className="px-4 py-2 text-right">R$ {ad.spend.toFixed(2)}</td>
+                        <td className="px-4 py-2 text-right">R$ {((ad.spend || 0) * (ad.roas || 0)).toFixed(2)}</td>
+                        <td className="px-4 py-2 text-right">
+                          <span className={ad.roas >= 1 ? "text-green-600" : "text-red-600"}>
+                            {ad.roas.toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <span className={ad.acos <= 50 ? "text-green-600" : "text-red-600"}>
+                            {ad.acos.toFixed(1)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </Card>
-        </TabsContent>
-
-        {/* Insights Tab */}
-        <TabsContent value="insights">
-          <ShopeeAdsInsights metrics={metrics} />
         </TabsContent>
 
         {/* Upload Tab */}
@@ -284,11 +328,11 @@ export function ShopeeAdsDashboard() {
             <h3 className="font-semibold mb-4">Carregar Relatório de Shopee Ads</h3>
             <ShopeeAdsUploaderV2
               onSuccess={() => {
-                // Refresh ads data
-                window.location.reload();
+                // Refresh ads data without reloading page
+                fetchAds();
               }}
               onError={(error) => {
-                console.error('Upload error:', error);
+                console.error("Upload error:", error);
               }}
             />
           </Card>
