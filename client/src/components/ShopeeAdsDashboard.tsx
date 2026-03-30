@@ -22,7 +22,13 @@ export function ShopeeAdsDashboard() {
         credentials: "include",
       });
       const result = await response.json();
-      const adsData = result?.result?.data;
+      let adsData = result?.result?.data;
+      
+      // Handle superjson serialization from tRPC
+      if (adsData && typeof adsData === 'object' && 'json' in adsData && Array.isArray(adsData.json)) {
+        adsData = adsData.json;
+      }
+      
       if (Array.isArray(adsData)) {
         setAds(adsData);
       } else {
@@ -146,16 +152,56 @@ export function ShopeeAdsDashboard() {
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card className={`p-6 ${
+              metrics.avgACOS > 50
+                ? "bg-red-50 border-2 border-red-300"
+                : ""
+            }`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">ACOS Médio</p>
-                  <p className="text-2xl font-bold">{metrics.avgACOS.toFixed(1)}%</p>
+                  <p className={`text-2xl font-bold ${
+                    metrics.avgACOS > 50 ? "text-red-600" : ""
+                  }`}>{metrics.avgACOS.toFixed(1)}%</p>
+                  {metrics.avgACOS > 50 && (
+                    <p className="text-xs text-red-600 mt-2">⚠️ ACOS acima do limite</p>
+                  )}
                 </div>
-                <TrendingDown className="w-8 h-8 text-red-500" />
+                <TrendingDown className={`w-8 h-8 ${
+                  metrics.avgACOS > 50 ? "text-red-600" : "text-red-500"
+                }`} />
               </div>
             </Card>
           </div>
+
+          {/* Critical Alerts Section */}
+          {filteredAds.some((ad) => (ad.acos || 0) > 75 || (ad.roas || 0) < 0.5) && (
+            <Card className="p-6 bg-orange-50 border-2 border-orange-300">
+              <h3 className="font-semibold mb-4 text-orange-900">🚨 Anúncios Críticos</h3>
+              <div className="space-y-3">
+                {filteredAds
+                  .filter((ad) => (ad.acos || 0) > 75 || (ad.roas || 0) < 0.5)
+                  .slice(0, 5)
+                  .map((ad) => (
+                    <div key={ad.id} className="bg-white p-3 rounded border-l-4 border-orange-500">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{ad.adName}</p>
+                          <div className="flex gap-4 mt-2 text-xs">
+                            {(ad.acos || 0) > 75 && (
+                              <span className="text-red-600">ACOS: {ad.acos.toFixed(1)}% ⚠️</span>
+                            )}
+                            {(ad.roas || 0) < 0.5 && (
+                              <span className="text-red-600">ROAS: {ad.roas.toFixed(2)} ⚠️</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </Card>
+          )}
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

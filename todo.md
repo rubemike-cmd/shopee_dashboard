@@ -56,3 +56,17 @@
 - [x] Criar endpoint de insights de Shopee Ads com LLM
 - [x] Integrar aba de Shopee Ads ao dashboard com todas as funcionalidades
 - [x] Escrever testes para routers e validações de Shopee Ads
+
+## Bug Fixes - Shopee Ads Upload
+- [x] Corrigir bug: dados de Shopee Ads não eram persistidos no banco após upload bem-sucedido
+- [x] Implementar persistência no shopeeAdsRouterV2: inserir em shopee_ads_uploads e shopee_ads_data
+- [x] Garantir que fetchAds() recupera dados do banco após upload (sem necessidade de reload)
+- [x] Adicionar testes para shopeeAdsRouterV2 com persistência
+- [x] Validar fluxo completo com arquivo CSV real do usuário
+
+## Melhorias Sugeridas - Shopee Ads
+- [x] Adicionar alertas ACOS: destacar anúncios com ACOS acima de um limite configurável
+- [x] Implementar histórico de uploads: mostrar data/hora de cada upload e permitir comparação
+- [ ] Adicionar comparação de períodos: visualizar mudanças de ROAS/ACOS entre uploads
+- [ ] Criar dashboard de tendências: gráfico de evolução de ROAS e ACOS ao longo do tempo
+- [ ] Implementar recomendações automáticas: pausar anúncios com ACOS muito alto
