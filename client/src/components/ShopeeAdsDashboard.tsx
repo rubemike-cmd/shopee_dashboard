@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, DollarSign, Target } from "lucide-react";
-import { ShopeeAdsUploader } from "./ShopeeAdsUploader";
+import { ShopeeAdsUploaderV2 } from "./ShopeeAdsUploaderV2";
 import { useShopeeAdsAnalysis, getAdPerformanceCategory, getACOSStatus, ShopeeAd } from "@/hooks/useShopeeAdsAnalysis";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { trpc } from "@/lib/trpc";
@@ -282,10 +282,13 @@ export function ShopeeAdsDashboard() {
         <TabsContent value="upload">
           <Card className="p-6">
             <h3 className="font-semibold mb-4">Carregar Relatório de Shopee Ads</h3>
-            <ShopeeAdsUploader
-              onUploadSuccess={() => {
+            <ShopeeAdsUploaderV2
+              onSuccess={() => {
                 // Refresh ads data
                 window.location.reload();
+              }}
+              onError={(error) => {
+                console.error('Upload error:', error);
               }}
             />
           </Card>
