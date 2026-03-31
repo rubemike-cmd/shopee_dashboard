@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { MentorChat } from './MentorChat';
 import {
   Sparkles, TrendingUp, AlertTriangle, Lightbulb, Target,
   RefreshCw, ChevronDown, ChevronUp, Star, Zap, MessageSquare
@@ -336,6 +337,17 @@ export default function InsightsPanel({ data }: InsightsPanelProps) {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nota do Mentor</span>
             <p className="text-sm mt-1 leading-relaxed italic text-foreground/80">"{insights.mentorNote}"</p>
           </div>
+        </div>
+      </Card>
+
+      {/* Chat com o Mentor */}
+      <Card className="p-5 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="w-4 h-4 text-primary" />
+          <h4 className="font-semibold text-sm">Converse com o Mentor</h4>
+        </div>
+        <div className="h-96">
+          <MentorChat dashboardData={data} />
         </div>
       </Card>
     </div>

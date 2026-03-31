@@ -79,3 +79,6 @@
 
 ## Bug Fixes - Insights Visão Geral
 - [x] Corrigir seção de Insights (Análise do Mentor) da aba Visão Geral de pedidos/vendas
+
+## Novas Funcionalidades - Mentor Chat
+- [x] Criar campo de conversa com o mentor na seção de Insights

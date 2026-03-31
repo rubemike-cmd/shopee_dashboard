@@ -183,4 +183,96 @@ ${input.topProducts.slice(0, 10).map((p, i) => `${i + 1}. ${p.name} — ${p.coun
         mentorNote: string;
       };
     }),
+  mentorChat: publicProcedure
+    .input(
+      z.object({
+        userMessage: z.string().min(1).max(1000),
+        dashboardData: z.object({
+          totalOrders: z.number(),
+          totalRevenue: z.number(),
+          totalProfit: z.number(),
+          profitMargin: z.number(),
+          avgOrderValue: z.number(),
+          topProducts: z.array(z.object({
+            name: z.string(),
+            count: z.number(),
+            totalProfit: z.number(),
+          })),
+          statusDistribution: z.array(z.object({
+            name: z.string(),
+            value: z.number(),
+            percentage: z.number(),
+          })),
+          stateDistribution: z.array(z.object({
+            name: z.string(),
+            value: z.number(),
+          })).max(50),
+          logisticsDistribution: z.array(z.object({
+            name: z.string(),
+            value: z.number(),
+          })),
+          periodDays: z.number().optional(),
+          dateRange: z.object({
+            start: z.string(),
+            end: z.string(),
+          }).optional(),
+        }),
+        conversationHistory: z.array(z.object({
+          role: z.enum(["user", "mentor"]),
+          content: z.string(),
+        })).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const dataContext = `
+## Dados da Loja — Período Analisado
+${input.dashboardData.dateRange ? `Período: ${input.dashboardData.dateRange.start} a ${input.dashboardData.dateRange.end} (${input.dashboardData.periodDays ?? "?"} dias)` : "Todos os pedidos disponíveis"}
+
+### Métricas Gerais
+- Total de pedidos: ${input.dashboardData.totalOrders}
+- Valor total de vendas: R$ ${input.dashboardData.totalRevenue.toFixed(2)}
+- Lucro líquido total: R$ ${input.dashboardData.totalProfit.toFixed(2)}
+- Margem de lucro: ${input.dashboardData.profitMargin.toFixed(1)}%
+- Ticket médio: R$ ${input.dashboardData.avgOrderValue.toFixed(2)}
+
+### Distribuição por Status dos Pedidos
+${input.dashboardData.statusDistribution.map(s => `- ${s.name}: ${s.value} pedidos (${s.percentage.toFixed(1)}%)`).join("\n")}
+
+### Top Estados por Volume de Pedidos
+${input.dashboardData.stateDistribution.slice(0, 8).map(s => `- ${s.name}: ${s.value} pedidos`).join("\n")}
+
+### Distribuição Logística
+${input.dashboardData.logisticsDistribution.map(l => `- ${l.name}: ${l.value} pedidos`).join("\n")}
+
+### Top Produtos por Lucro Líquido
+${input.dashboardData.topProducts.slice(0, 10).map((p, i) => `${i + 1}. ${p.name} — ${p.count} vendas, R$ ${p.totalProfit.toFixed(2)} de lucro total`).join("\n")}
+      `.trim();
+
+      const conversationContext = input.conversationHistory
+        ? input.conversationHistory
+            .map(
+              (msg) =>
+                `${msg.role === "user" ? "Cliente" : "Mentor"}: ${msg.content}`
+            )
+            .join("\n\n")
+        : "";
+
+      const result = await invokeLLM({
+        messages: [
+          { role: "system", content: MENTOR_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `Contexto dos dados da loja:\n\n${dataContext}\n\n${conversationContext ? `Histórico da conversa:\n${conversationContext}\n\n` : ""}Pergunta do cliente: ${input.userMessage}\n\nResponda de forma direta, prática e fundamentada nos dados. Seja o mentor experiente que você é.`,
+          },
+        ],
+        max_tokens: 1000,
+      });
+
+      const content = result.choices[0]?.message?.content;
+      if (!content || typeof content !== "string") {
+        throw new Error("Resposta inválida do LLM");
+      }
+
+      return { reply: content };
+    }),
 });
