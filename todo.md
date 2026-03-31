@@ -67,9 +67,9 @@
 ## Melhorias Sugeridas - Shopee Ads
 - [x] Adicionar alertas ACOS: destacar anúncios com ACOS acima de um limite configurável
 - [x] Implementar histórico de uploads: mostrar data/hora de cada upload e permitir comparação
-- [ ] Adicionar comparação de períodos: visualizar mudanças de ROAS/ACOS entre uploads
-- [ ] Criar dashboard de tendências: gráfico de evolução de ROAS e ACOS ao longo do tempo
-- [ ] Implementar recomendações automáticas: pausar anúncios com ACOS muito alto
+- [x] Adicionar comparação de períodos: visualizar mudanças de ROAS/ACOS entre uploads
+- [x] Criar dashboard de tendências: gráfico de evolução de ROAS e ACOS ao longo do tempo
+- [ ] Implementar recomendações automáticas: pausar anúncios com ACOS muito alto (fora do escopo - requer API Shopee)
 
 ## Melhorias de UX - Shopee Ads
 - [x] Adicionar botão de atualizar (refresh) no cabeçalho do Shopee Ads para puxar últimos dados

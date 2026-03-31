@@ -8,6 +8,7 @@ import { useShopeeAdsAnalysis, getAdPerformanceCategory, getACOSStatus, ShopeeAd
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { trpc } from "@/lib/trpc";
 import { ShopeeAdsInsights } from "./ShopeeAdsInsights";
+import { ShopeeAdsHistory } from "./ShopeeAdsHistory";
 
 export function ShopeeAdsDashboard() {
   const [ads, setAds] = useState<ShopeeAd[]>([]);
@@ -126,9 +127,10 @@ export function ShopeeAdsDashboard() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="insights">✦ Insights</TabsTrigger>
+          <TabsTrigger value="history">📈 Histórico</TabsTrigger>
           <TabsTrigger value="table">Tabela</TabsTrigger>
           <TabsTrigger value="upload">Upload</TabsTrigger>
         </TabsList>
@@ -136,7 +138,7 @@ export function ShopeeAdsDashboard() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           {/* KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -297,6 +299,10 @@ export function ShopeeAdsDashboard() {
         {/* Insights Tab */}
         <TabsContent value="insights">
             <ShopeeAdsInsights metrics={metrics} />
+        </TabsContent>
+        {/* History Tab */}
+        <TabsContent value="history">
+          <ShopeeAdsHistory />
         </TabsContent>
 
         {/* Table Tab */}

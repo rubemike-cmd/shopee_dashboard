@@ -1,6 +1,9 @@
 import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { invokeLLM } from "./_core/llm";
+import { getDb } from "./db";
+import { shopeeAdsUploads, shopeeAdsData } from "../drizzle/schema";
+import { desc, eq, sql } from "drizzle-orm";
 
 export const shopeeAdsInsightsRouter = router({
   generate: publicProcedure
@@ -91,6 +94,65 @@ Forneça a análise em formato estruturado e direto, com linguagem clara e profi
             "Não foi possível gerar insights no momento. Tente novamente mais tarde.",
           error: error instanceof Error ? error.message : "Unknown error",
         };
+      }
+    }),
+
+  getUploadHistory: publicProcedure
+    .query(async () => {
+      try {
+        const database = await getDb();
+        if (!database) {
+          console.warn("Database not available");
+          return [];
+        }
+
+        // Get the last 30 uploads
+        const uploads = await database
+          .select({
+            id: shopeeAdsUploads.id,
+            uploadedAt: shopeeAdsUploads.uploadedAt,
+            totalAds: shopeeAdsUploads.totalAds,
+          })
+          .from(shopeeAdsUploads)
+          .orderBy(desc(shopeeAdsUploads.uploadedAt))
+          .limit(30);
+
+        // For each upload, calculate metrics from shopeeAdsData
+        const enrichedUploads = await Promise.all(
+          uploads.map(async (upload) => {
+            const data = await database
+              .select({
+                totalImpressions: sql<number>`SUM(CAST(${shopeeAdsData.impressions} AS UNSIGNED))`,
+                totalClicks: sql<number>`SUM(CAST(${shopeeAdsData.clicks} AS UNSIGNED))`,
+                avgROAS: sql<number>`AVG(CAST(${shopeeAdsData.roas} AS DECIMAL(10,2)))`,
+                avgACOS: sql<number>`AVG(CAST(${shopeeAdsData.acos} AS DECIMAL(10,2)))`,
+              })
+              .from(shopeeAdsData)
+              .where(eq(shopeeAdsData.uploadId, upload.id));
+
+            const metrics = data[0] || {
+              totalImpressions: 0,
+              totalClicks: 0,
+              avgROAS: 0,
+              avgACOS: 0,
+            };
+
+            return {
+              id: upload.id,
+              uploadedAt: upload.uploadedAt,
+              totalAds: upload.totalAds,
+              totalImpressions: Number(metrics.totalImpressions) || 0,
+              totalClicks: Number(metrics.totalClicks) || 0,
+              avgROAS: Number(metrics.avgROAS) || 0,
+              avgACOS: Number(metrics.avgACOS) || 0,
+            };
+          })
+        );
+
+        return enrichedUploads;
+      } catch (error) {
+        console.error("Error fetching upload history:", error);
+        return [];
       }
     }),
 });
