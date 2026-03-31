@@ -259,10 +259,13 @@ ${input.dashboardData.topProducts.slice(0, 10).map((p, i) => `${i + 1}. ${p.name
 
       const result = await invokeLLM({
         messages: [
-          { role: "system", content: MENTOR_SYSTEM_PROMPT },
+          {
+            role: "system",
+            content: `Você é um mentor experiente em e-commerce com mais de 15 anos de experiência. Seu estilo é direto, prático, empático mas honesto. Responda SEMPRE em texto simples e bem formatado (use markdown se necessário), NUNCA em JSON ou código. Cite números reais dos dados fornecidos. Seja específico e prático.`,
+          },
           {
             role: "user",
-            content: `Contexto dos dados da loja:\n\n${dataContext}\n\n${conversationContext ? `Histórico da conversa:\n${conversationContext}\n\n` : ""}Pergunta do cliente: ${input.userMessage}\n\nResponda de forma direta, prática e fundamentada nos dados. Seja o mentor experiente que você é.`,
+            content: `Contexto dos dados da loja:\n\n${dataContext}\n\n${conversationContext ? `Histórico da conversa:\n${conversationContext}\n\n` : ""}Pergunta do cliente: ${input.userMessage}\n\nResponda de forma direta, prática e fundamentada nos dados. Responda APENAS em texto simples, sem JSON ou código.`,
           },
         ],
         max_tokens: 1000,
@@ -273,8 +276,13 @@ ${input.dashboardData.topProducts.slice(0, 10).map((p, i) => `${i + 1}. ${p.name
         throw new Error("Resposta inválida do LLM");
       }
 
-      // Remove prefixo "json" se presente (às vezes o LLM retorna "json{...}")
-      content = content.replace(/^json\s*/i, "").trim();
+      // Remove prefixos comuns que o LLM pode adicionar
+      content = content
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/^json\s*/i, "")
+        .replace(/```\s*$/i, "")
+        .trim();
 
       return { reply: content };
     }),

@@ -84,4 +84,4 @@
 - [x] Criar campo de conversa com o mentor na seção de Insights
 
 ## Bug Fixes - Mentor Chat
-- [x] Corrigir renderização de respostas do mentor: está retornando JSON em vez de texto formatado
+- [x] Corrigir renderização de respostas do mentor: está retornando JSON em vez de texto formatado (DEFINITIVAMENTE CORRIGIDO)
