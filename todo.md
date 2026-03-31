@@ -70,3 +70,6 @@
 - [ ] Adicionar comparação de períodos: visualizar mudanças de ROAS/ACOS entre uploads
 - [ ] Criar dashboard de tendências: gráfico de evolução de ROAS e ACOS ao longo do tempo
 - [ ] Implementar recomendações automáticas: pausar anúncios com ACOS muito alto
+
+## Melhorias de UX - Shopee Ads
+- [x] Adicionar botão de atualizar (refresh) no cabeçalho do Shopee Ads para puxar últimos dados

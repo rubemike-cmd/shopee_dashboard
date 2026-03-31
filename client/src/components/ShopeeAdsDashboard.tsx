@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, TrendingUp, TrendingDown, DollarSign, Target } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, DollarSign, Target, RefreshCw } from "lucide-react";
 import { ShopeeAdsUploaderV2 } from "./ShopeeAdsUploaderV2";
 import { useShopeeAdsAnalysis, getAdPerformanceCategory, getACOSStatus, ShopeeAd } from "@/hooks/useShopeeAdsAnalysis";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
@@ -110,6 +110,21 @@ export function ShopeeAdsDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Header com botão de refresh */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Shopee Ads Dashboard</h2>
+        <Button
+          onClick={fetchAds}
+          disabled={isLoading}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          {isLoading ? 'Atualizando...' : 'Atualizar'}
+        </Button>
+      </div>
+
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
