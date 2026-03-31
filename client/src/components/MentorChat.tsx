@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -48,7 +47,7 @@ interface MentorChatProps {
 }
 
 export function MentorChat({ dashboardData }: MentorChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = React.useState<Message[]>([
     {
       id: "1",
       role: "mentor",
@@ -57,13 +56,13 @@ export function MentorChat({ dashboardData }: MentorChatProps) {
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const mentorChatMutation = trpc.insights.mentorChat.useMutation();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
@@ -149,6 +148,14 @@ export function MentorChat({ dashboardData }: MentorChatProps) {
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-card text-card-foreground border rounded-lg rounded-bl-none px-4 py-2 flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Mentor está respondendo...</span>
+                </div>
+              </div>
+            )}
             <div ref={scrollRef} />
           </div>
         </ScrollArea>
@@ -159,14 +166,12 @@ export function MentorChat({ dashboardData }: MentorChatProps) {
           placeholder="Faça uma pergunta ao mentor..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
+          onKeyPress={(e) => {
+            if (e.key === "Enter" && !isLoading) {
               handleSendMessage();
             }
           }}
           disabled={isLoading}
-          className="flex-1"
         />
         <Button
           onClick={handleSendMessage}
@@ -183,3 +188,5 @@ export function MentorChat({ dashboardData }: MentorChatProps) {
     </div>
   );
 }
+
+import React from "react";

@@ -268,10 +268,13 @@ ${input.dashboardData.topProducts.slice(0, 10).map((p, i) => `${i + 1}. ${p.name
         max_tokens: 1000,
       });
 
-      const content = result.choices[0]?.message?.content;
+      let content = result.choices[0]?.message?.content;
       if (!content || typeof content !== "string") {
         throw new Error("Resposta inválida do LLM");
       }
+
+      // Remove prefixo "json" se presente (às vezes o LLM retorna "json{...}")
+      content = content.replace(/^json\s*/i, "").trim();
 
       return { reply: content };
     }),
