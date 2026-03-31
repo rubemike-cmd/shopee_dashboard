@@ -117,7 +117,7 @@ export const insightsRouter = router({
         stateDistribution: z.array(z.object({
           name: z.string(),
           value: z.number(),
-        })).max(10),
+        })).max(50),
         logisticsDistribution: z.array(z.object({
           name: z.string(),
           value: z.number(),

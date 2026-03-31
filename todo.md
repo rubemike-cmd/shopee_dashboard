@@ -76,3 +76,6 @@
 
 ## Bug Fixes - Shopee Ads Insights
 - [x] Revisar e corrigir completamente a seção de Insights do Shopee Ads
+
+## Bug Fixes - Insights Visão Geral
+- [x] Corrigir seção de Insights (Análise do Mentor) da aba Visão Geral de pedidos/vendas
