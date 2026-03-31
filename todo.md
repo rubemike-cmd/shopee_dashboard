@@ -73,3 +73,6 @@
 
 ## Melhorias de UX - Shopee Ads
 - [x] Adicionar botão de atualizar (refresh) no cabeçalho do Shopee Ads para puxar últimos dados
+
+## Bug Fixes - Shopee Ads Insights
+- [x] Revisar e corrigir completamente a seção de Insights do Shopee Ads

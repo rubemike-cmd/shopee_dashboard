@@ -6,7 +6,6 @@ export const shopeeAdsInsightsRouter = router({
   generate: publicProcedure
     .input(
       z.object({
-        metrics: z.object({
           totalAds: z.number(),
           activeAds: z.number(),
           pausedAds: z.number(),
@@ -24,11 +23,10 @@ export const shopeeAdsInsightsRouter = router({
           avgACOS: z.number(),
           avgDirectACOS: z.number(),
           totalItemsSold: z.number(),
-        }),
       })
     )
     .mutation(async ({ input }) => {
-      const { metrics } = input;
+      const metrics = input;
 
       const prompt = `Você é um especialista em marketing digital e gestão de campanhas de anúncios em marketplaces como Shopee. Analise os seguintes dados de desempenho de anúncios e forneça insights profissionais e acionáveis.
 

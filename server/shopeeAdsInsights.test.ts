@@ -69,10 +69,11 @@ describe("shopeeAdsInsights router", () => {
     };
 
     try {
-      const result = await caller.shopeeAdsInsights.generate({ metrics: mockMetrics });
+      const result = await caller.shopeeAdsInsights.generate(mockMetrics);
       // LLM call might succeed or fail depending on environment
       expect(result).toBeDefined();
       expect(result.insights).toBeDefined();
+      expect(result.success).toBe(true);
     } catch (error) {
       // LLM might not be available in test environment
       expect(error).toBeDefined();

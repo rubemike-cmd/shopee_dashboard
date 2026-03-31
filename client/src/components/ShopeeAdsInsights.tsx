@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { ShopeeAdsMetrics } from "@/hooks/useShopeeAdsAnalysis";
 import { Streamdown } from "streamdown";
@@ -12,49 +12,42 @@ interface ShopeeAdsInsightsProps {
 
 export function ShopeeAdsInsights({ metrics }: ShopeeAdsInsightsProps) {
   const [insights, setInsights] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateInsights = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/trpc/shopeeAdsInsights.generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input: { metrics },
-        }),
-        credentials: "include",
-      });
-
-      const result = await response.json();
-      if (result.result?.data?.insights) {
-        setInsights(result.result.data.insights);
+  const generateMutation = trpc.shopeeAdsInsights.generate.useMutation({
+    onSuccess: (data) => {
+      if (data.success && data.insights) {
+        const insightsText = typeof data.insights === 'string' ? data.insights : JSON.stringify(data.insights);
+        setInsights(insightsText);
+        setError(null);
       } else {
-        setError("Não foi possível gerar insights");
+        setError(data.error || "Não foi possível gerar insights");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao gerar insights");
-    } finally {
-      setIsLoading(false);
-    }
+    },
+    onError: (err) => {
+      setError(err.message || "Erro ao gerar insights");
+    },
+  });
+
+  const handleGenerateInsights = () => {
+    setError(null);
+    generateMutation.mutate(metrics);
   };
 
-  if (!insights && !isLoading && !error) {
+  if (!insights && !generateMutation.isPending && !error) {
     return (
       <Card className="p-6 text-center">
         <div className="space-y-4">
           <p className="text-gray-600">
             Clique no botão abaixo para gerar uma análise inteligente dos seus anúncios
           </p>
-          <Button onClick={generateInsights} disabled={isLoading} className="gap-2">
-            {isLoading ? (
+          <Button onClick={handleGenerateInsights} disabled={generateMutation.isPending} className="gap-2">
+            {generateMutation.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <RefreshCw className="w-4 h-4" />
             )}
-            {isLoading ? "Gerando..." : "Gerar Análise do Mentor"}
+            {generateMutation.isPending ? "Gerando..." : "Gerar Análise do Mentor"}
           </Button>
         </div>
       </Card>
@@ -67,11 +60,11 @@ export function ShopeeAdsInsights({ metrics }: ShopeeAdsInsightsProps) {
         <Button
           variant="outline"
           size="sm"
-          onClick={generateInsights}
-          disabled={isLoading}
+          onClick={handleGenerateInsights}
+          disabled={generateMutation.isPending}
           className="gap-2"
         >
-          {isLoading ? (
+          {generateMutation.isPending ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <RefreshCw className="w-4 h-4" />
@@ -100,7 +93,7 @@ export function ShopeeAdsInsights({ metrics }: ShopeeAdsInsightsProps) {
         </Card>
       )}
 
-      {isLoading && (
+      {generateMutation.isPending && (
         <Card className="p-6">
           <div className="flex items-center justify-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
