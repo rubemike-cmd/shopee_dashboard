@@ -10,6 +10,7 @@ import { insightsRouter } from "./insightsRouter";
 import { shopeeAdsRouter } from "./shopeeAdsRouter";
 import { shopeeAdsInsightsRouter } from "./shopeeAdsInsightsRouter";
 import { shopeeAdsRouterV2 } from "./shopeeAdsRouterV2";
+import { productsRouter } from "./productsRouter";
 
 const GOALS_ROW_ID = 1; // Single-row config pattern
 
@@ -28,6 +29,7 @@ export const appRouter = router({
   shopeeAds: shopeeAdsRouter,
   shopeeAdsInsights: shopeeAdsInsightsRouter,
   shopeeAdsV2: shopeeAdsRouterV2,
+  products: productsRouter,
 
   goals: router({
     /**

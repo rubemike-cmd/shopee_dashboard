@@ -85,3 +85,9 @@
 
 ## Bug Fixes - Mentor Chat
 - [x] Corrigir renderização de respostas do mentor: está retornando JSON em vez de texto formatado (DEFINITIVAMENTE CORRIGIDO)
+
+## Novas Funcionalidades - Análise de Produtos
+- [x] Criar aba de Produtos com análise dos mais vendidos
+- [x] Implementar gráficos de vendas, lucro e margem por produto
+- [x] Adicionar tabela com ranking de produtos (vendas, faturamento, lucro)
+- [ ] Integrar filtros por categoria e período (para versão futura)
