@@ -99,3 +99,11 @@
 - [ ] Adicionar filtros por período/categoria na seção de Produtos
 - [ ] Implementar integração com API Shopee para dados em tempo real
 - [ ] Adicionar notificações em tempo real para alertas críticos
+
+
+## Melhorias - Seção de Produtos (Revisão Completa)
+- [x] Conectar Produtos a dados reais carregados (remover mocks)
+- [x] Adicionar cards de produtos com visualização clara
+- [x] Destacar percentual de margem de lucro por produto
+- [x] Implementar gráficos de margem de lucro acumulada
+- [x] Melhorar UX com cores indicadoras de performance
