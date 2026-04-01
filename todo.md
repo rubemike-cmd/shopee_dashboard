@@ -107,3 +107,7 @@
 - [x] Destacar percentual de margem de lucro por produto
 - [x] Implementar gráficos de margem de lucro acumulada
 - [x] Melhorar UX com cores indicadoras de performance
+
+
+## Bug Fixes - Cálculo de Margem de Lucro
+- [x] Corrigir fórmula de margem: Margem = Lucro Total (col O) / Custo Total (col N)

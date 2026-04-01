@@ -18,6 +18,7 @@ export function ProductsAnalysis() {
       name: string;
       quantity: number;
       revenue: number;
+      cost: number;
       profit: number;
       margin: number;
     }>();
@@ -32,22 +33,24 @@ export function ProductsAnalysis() {
         const existing = productMap.get(productName)!;
         existing.quantity += 1;
         existing.revenue += price;
+        existing.cost += cost;
         existing.profit += profitValue;
       } else {
         productMap.set(productName, {
           name: productName,
           quantity: 1,
           revenue: price,
+          cost: cost,
           profit: profitValue,
           margin: 0,
         });
       }
     });
 
-    // Calcular margem de lucro
+    // Calcular margem de lucro: Margem = Lucro Total / Custo Total
     const products = Array.from(productMap.values()).map(p => ({
       ...p,
-      margin: p.revenue > 0 ? (p.profit / p.revenue) * 100 : 0,
+      margin: p.cost > 0 ? (p.profit / p.cost) * 100 : 0,
     }));
 
     // Ordenar por revenue (maior primeiro)
@@ -60,7 +63,9 @@ export function ProductsAnalysis() {
     const totalQuantity = productsData.reduce((sum, p) => sum + p.quantity, 0);
     const totalRevenue = productsData.reduce((sum, p) => sum + p.revenue, 0);
     const totalProfit = productsData.reduce((sum, p) => sum + p.profit, 0);
-    const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+    const totalCost = productsData.reduce((sum, p) => sum + p.cost, 0);
+    // Margem = Lucro Total / Custo Total
+    const avgMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
 
     return { totalProducts, totalQuantity, totalRevenue, totalProfit, avgMargin };
   }, [productsData]);
