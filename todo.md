@@ -93,8 +93,8 @@
 - [ ] Integrar filtros por categoria e período (para versão futura - NÃO IMPLEMENTADO)
 
 
-## Melhorias Futuras - Não Implementadas
-- [ ] Conectar seção de Produtos a dados reais (remover mocks em server/productsRouter.ts)
+## Melhorias Futuras - Não Implementadas (V2.0)
+- [x] Conectar seção de Produtos a dados reais (implementado no client via useOrders())
 - [ ] Implementar recomendações automáticas de Shopee Ads (requer API Shopee)
 - [ ] Adicionar filtros por período/categoria na seção de Produtos
 - [ ] Implementar integração com API Shopee para dados em tempo real
