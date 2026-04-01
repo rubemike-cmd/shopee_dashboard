@@ -90,4 +90,12 @@
 - [x] Criar aba de Produtos com análise dos mais vendidos
 - [x] Implementar gráficos de vendas, lucro e margem por produto
 - [x] Adicionar tabela com ranking de produtos (vendas, faturamento, lucro)
-- [ ] Integrar filtros por categoria e período (para versão futura)
+- [ ] Integrar filtros por categoria e período (para versão futura - NÃO IMPLEMENTADO)
+
+
+## Melhorias Futuras - Não Implementadas
+- [ ] Conectar seção de Produtos a dados reais (remover mocks em server/productsRouter.ts)
+- [ ] Implementar recomendações automáticas de Shopee Ads (requer API Shopee)
+- [ ] Adicionar filtros por período/categoria na seção de Produtos
+- [ ] Implementar integração com API Shopee para dados em tempo real
+- [ ] Adicionar notificações em tempo real para alertas críticos
