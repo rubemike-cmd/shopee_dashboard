@@ -140,3 +140,10 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 - ✅ Filtros otimizados com interface moderna
 
 **Próximas Melhorias (V2.0):** Integração com API Shopee, notificações em tempo real, análise avançada de produtos
+
+
+## Bug Fixes - Seção de Produtos (Lucro Líquido)
+- [x] Atualizar ProductsAnalysis para usar Lucro Líquido (coluna P) em vez de Lucro Total (coluna O)
+- [x] Corrigir cálculos de margem para usar Lucro Líquido
+- [x] Atualizar gráficos e tabelas com valores corretos de lucro líquido
+- [x] Testar e validar a seção de Produtos com novos valores

@@ -27,7 +27,7 @@ export function ProductsAnalysis() {
       const productName = order['Produtos'] || 'Sem nome';
       const price = parseFloat(String(order['Valor Total'])) || 0;
       const cost = parseFloat(String(order['Custo Total'])) || 0;
-      const profitValue = price - cost;
+      const profitValue = parseFloat(String(order['Líquido Total'])) || 0;
 
       if (productMap.has(productName)) {
         const existing = productMap.get(productName)!;
