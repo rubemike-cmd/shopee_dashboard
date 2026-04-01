@@ -55,7 +55,7 @@ export default function OrdersTable({ orders }: OrdersTableProps) {
       order['Cidade do Cliente'],
       order['Estado do Cliente'],
       order['Status'],
-      order['valor da venda'].toFixed(2),
+      order['Valor Total'].toFixed(2),
       order['Custo Total'].toFixed(2),
       order['Líquido Total'].toFixed(2),
       order['Modo de Logística'],
@@ -186,7 +186,7 @@ export default function OrdersTable({ orders }: OrdersTableProps) {
                       {order['Status']}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-right font-mono">R$ {order['valor da venda'].toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right font-mono">R$ {order['Valor Total'].toFixed(2)}</td>
                   <td className="py-3 px-4 text-right font-mono">R$ {order['Custo Total'].toFixed(2)}</td>
                   <td className={`py-3 px-4 text-right font-mono font-semibold ${order['Líquido Total'] >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     R$ {order['Líquido Total'].toFixed(2)}

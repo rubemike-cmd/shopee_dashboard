@@ -46,7 +46,7 @@ export function useGoalsAnalysis(ordersData: Order[] = []) {
       return orderDate >= weekStart && orderDate <= weekEnd;
     });
 
-    const weekRevenue = weekOrders.reduce((sum, o) => sum + o['valor da venda'], 0);
+    const weekRevenue = weekOrders.reduce((sum, o) => sum + o['Valor Total'], 0);
     const weekProfit = weekOrders.reduce((sum, o) => sum + o['Líquido Total'], 0);
 
     return {
@@ -73,7 +73,7 @@ export function useGoalsAnalysis(ordersData: Order[] = []) {
       return orderDate >= monthStart && orderDate <= monthEnd;
     });
 
-    const monthRevenue = monthOrders.reduce((sum, o) => sum + o['valor da venda'], 0);
+    const monthRevenue = monthOrders.reduce((sum, o) => sum + o['Valor Total'], 0);
     const monthProfit = monthOrders.reduce((sum, o) => sum + o['Líquido Total'], 0);
 
     const daysInMonth = monthEnd.getDate();
@@ -123,7 +123,7 @@ export function useGoalsAnalysis(ordersData: Order[] = []) {
         return orderDate >= weekStart && orderDate <= weekEnd;
       });
 
-      const weekRevenue = weekOrders.reduce((sum, o) => sum + o['valor da venda'], 0);
+      const weekRevenue = weekOrders.reduce((sum, o) => sum + o['Valor Total'], 0);
       const weekProfit = weekOrders.reduce((sum, o) => sum + o['Líquido Total'], 0);
 
       weeks.push({

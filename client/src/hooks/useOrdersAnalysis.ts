@@ -14,8 +14,9 @@ export interface Order {
   'Canal': string;
   'Empresa': string;
   'Status': string;
+  'Valor Total': number;
   'Custo Total': number;
-  'valor da venda': number;
+  'Lucro Total': number;
   'Líquido Total': number;
   'Modo de Logística': string;
   'Produtos': string;
@@ -109,7 +110,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
 
   const metrics = useMemo(() => {
     const totalOrders = filteredOrders.length;
-    const totalRevenue = filteredOrders.reduce((sum, o) => sum + o['valor da venda'], 0);
+    const totalRevenue = filteredOrders.reduce((sum, o) => sum + o['Valor Total'], 0);
     const totalCost = filteredOrders.reduce((sum, o) => sum + o['Custo Total'], 0);
     const totalProfit = filteredOrders.reduce((sum, o) => sum + o['Líquido Total'], 0);
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
@@ -171,7 +172,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
       if (!byDate[date]) {
         byDate[date] = { revenue: 0, profit: 0, count: 0 };
       }
-      byDate[date].revenue += order['valor da venda'];
+      byDate[date].revenue += order['Valor Total'];
       byDate[date].profit += order['Líquido Total'];
       byDate[date].count += 1;
     });
@@ -211,7 +212,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
     filteredOrders.forEach(order => {
       const productList = order['Produtos'].split(',');
       const liquidProfit = order['Líquido Total'];
-      const revenue = order['valor da venda'];
+      const revenue = order['Valor Total'];
       const numProducts = productList.length || 1;
       
       productList.forEach(product => {

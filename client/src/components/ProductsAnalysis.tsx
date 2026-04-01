@@ -25,7 +25,7 @@ export function ProductsAnalysis() {
 
     orders.forEach((order: Order) => {
       const productName = order['Produtos'] || 'Sem nome';
-      const price = parseFloat(String(order['valor da venda'])) || 0;
+      const price = parseFloat(String(order['Valor Total'])) || 0;
       const cost = parseFloat(String(order['Custo Total'])) || 0;
       const profitValue = price - cost;
 

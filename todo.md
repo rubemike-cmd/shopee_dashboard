@@ -111,3 +111,7 @@
 
 ## Bug Fixes - Cálculo de Margem de Lucro
 - [x] Corrigir fórmula de margem: Margem = Lucro Total (col O) / Custo Total (col N)
+
+
+## Bug Fixes - Nomes de Colunas
+- [x] Corrigir nomes das colunas para usar a estrutura correta da tabela de pedidos
