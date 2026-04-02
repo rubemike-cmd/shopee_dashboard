@@ -147,3 +147,22 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 - [x] Corrigir cálculos de margem para usar Lucro Líquido
 - [x] Atualizar gráficos e tabelas com valores corretos de lucro líquido
 - [x] Testar e validar a seção de Produtos com novos valores
+
+
+## Novas Funcionalidades - Projeção de Receita Futura
+- [x] Implementar cálculo de projeção de receita futura no gráfico "Receita por Data"
+- [x] Adicionar seletor de períodos pré-definidos (7, 15, 30, 60, 90 dias, 12 meses)
+- [x] Calcular média móvel e tendência dos últimos dados carregados
+- [x] Aplicar ponderação para considerar flutuações sazonais
+- [x] Exibir linha de projeção no gráfico com estilo diferenciado (traceada/cor diferente)
+- [x] Mostrar alertas quando houver mudanças significativas na tendência
+- [x] Adicionar tooltip com detalhes da projeção (data, valor projetado, confiança)
+- [x] Escrever testes para cálculos de projeção
+
+
+## Melhorias Futuras - Projeção de Receita (V2.0 - Refinamento)
+- [ ] Remover aleatoriedade de useRevenueProjection e usar modelo determinístico
+- [ ] Implementar sazonalidade real (padrões por dia da semana/mês)
+- [ ] Customizar Tooltip para exibir confiança da projeção
+- [ ] Validar renderização correta das linhas projetadas no gráfico
+- [ ] Estabilizar testes com dados determinísticos em vez de Math.random()

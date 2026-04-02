@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, TrendingUp, Truck, DollarSign, FileDown, Loader2, BarChart2, TrendingUp as TrendingUpIcon, CalendarDays, X as XIcon } from 'lucide-react';
+import { Package, TrendingUp, Truck, DollarSign, FileDown, Loader2, BarChart2, TrendingUp as TrendingUpIcon, CalendarDays, X as XIcon, AlertTriangle } from 'lucide-react';
 import MetricCard from '@/components/MetricCard';
 import OrdersTable from '@/components/OrdersTable';
 import LogisticsAnalysis from '@/components/LogisticsAnalysis';
@@ -11,6 +11,7 @@ import GoalsEditor from '@/components/GoalsEditor';
 import DashboardFilters from '@/components/DashboardFilters';
 import { useOrdersAnalysis, FilterOptions } from '@/hooks/useOrdersAnalysis';
 import { useGoalsAnalysis } from '@/hooks/useGoalsAnalysis';
+import { useRevenueProjection } from '@/hooks/useRevenueProjection';
 import { useOrders } from '@/contexts/OrdersContext';
 import { usePdfReport } from '@/hooks/usePdfReport';
 import SpreadsheetUploader from '@/components/SpreadsheetUploader';
@@ -94,6 +95,11 @@ export default function Dashboard() {
   const [chartDateStart, setChartDateStart] = useState<string>('');
   const [chartDateEnd, setChartDateEnd] = useState<string>('');
   const [showChartCalendar, setShowChartCalendar] = useState(false);
+  const [showProjection, setShowProjection] = useState(false);
+  const [projectionDays, setProjectionDays] = useState(7);
+
+  // Revenue projection hook
+  const { projectionMetrics, projectedData, projectionPeriods } = useRevenueProjection(revenueByDate, projectionDays);
 
   // Dates available in the data
   const allDates = useMemo(() => revenueByDate.map(d => d.date), [revenueByDate]);
@@ -120,7 +126,17 @@ export default function Dashboard() {
     });
   }, [chartFilteredRevenue]);
 
-  const revenueChartData = revenueView === 'daily' ? chartFilteredRevenue : cumulativeRevenue;
+  // Combinar dados históricos com projeção
+  const chartDataWithProjection = useMemo(() => {
+    if (!showProjection || projectedData.length === 0) {
+      return revenueView === 'daily' ? chartFilteredRevenue : cumulativeRevenue;
+    }
+    
+    const historical = revenueView === 'daily' ? chartFilteredRevenue : cumulativeRevenue;
+    return [...historical, ...projectedData];
+  }, [revenueView, chartFilteredRevenue, cumulativeRevenue, showProjection, projectedData]);
+
+  const revenueChartData = chartDataWithProjection;
 
   const TABS = [
     { id: 'overview', label: 'Visão Geral' },
@@ -210,7 +226,19 @@ export default function Dashboard() {
             {/* Chart header with controls */}
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <h3 className="text-heading">Receita por Data</h3>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Projection toggle button */}
+                <button
+                  onClick={() => setShowProjection(v => !v)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors ${
+                    showProjection
+                      ? 'border-primary bg-primary/10 text-primary font-medium'
+                      : 'border-border bg-background text-muted-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <TrendingUpIcon className="w-3.5 h-3.5" />
+                  Projeção
+                </button>
                 {/* Daily / Cumulative toggle */}
                 <div className="flex items-center rounded-lg border border-border overflow-hidden text-xs">
                   <button
@@ -292,6 +320,36 @@ export default function Dashboard() {
               </div>
             )}
 
+            {/* Projection period selector */}
+            {showProjection && (
+              <div className="mb-4 p-3 rounded-lg border border-border bg-secondary/30">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="text-xs font-medium text-muted-foreground">Período de projeção:</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {projectionPeriods.map(period => (
+                      <button
+                        key={period.days}
+                        onClick={() => setProjectionDays(period.days)}
+                        className={`px-2.5 py-1 rounded text-xs transition-colors ${
+                          projectionDays === period.days
+                            ? 'bg-primary text-primary-foreground font-medium'
+                            : 'bg-background border border-border text-muted-foreground hover:bg-secondary'
+                        }`}
+                      >
+                        {period.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {projectionMetrics.hasSignificantFluctuation && (
+                  <div className="flex items-start gap-2 mt-2 p-2 rounded bg-yellow-50 border border-yellow-200">
+                    <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-yellow-700">Flutuação significativa detectada nos dados. A projeção pode ter menor precisão.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Active period badge */}
             {(chartDateStart || chartDateEnd) && !showChartCalendar && (
               <p className="text-xs text-primary mb-3">
@@ -312,6 +370,12 @@ export default function Dashboard() {
                 <Legend />
                 <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6', r: 3 }} activeDot={{ r: 5 }} name={revenueView === 'cumulative' ? 'Receita Acumulada' : 'Receita'} />
                 <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981', r: 3 }} activeDot={{ r: 5 }} name={revenueView === 'cumulative' ? 'Lucro Acumulado' : 'Lucro'} />
+                {showProjection && (
+                  <>
+                    <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: '#3B82F6', r: 2, opacity: 0.5 }} activeDot={{ r: 4 }} name="Receita (Projetada)" data={projectedData} />
+                    <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: '#10B981', r: 2, opacity: 0.5 }} activeDot={{ r: 4 }} name="Lucro (Projetado)" data={projectedData} />
+                  </>
+                )}
               </LineChart>
             </ResponsiveContainer>
           </Card>
