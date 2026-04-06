@@ -369,6 +369,7 @@ export default function Dashboard() {
                 />
                 <Legend />
                 <Line 
+                  key="revenue-line"
                   type="monotone" 
                   dataKey="revenue" 
                   stroke="#3B82F6" 
@@ -384,6 +385,7 @@ export default function Dashboard() {
                   name={revenueView === 'cumulative' ? 'Receita Acumulada' : 'Receita'} 
                 />
                 <Line 
+                  key="profit-line"
                   type="monotone" 
                   dataKey="profit" 
                   stroke="#10B981" 

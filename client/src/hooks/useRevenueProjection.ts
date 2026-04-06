@@ -88,15 +88,24 @@ function hasSignificantFluctuation(data: number[], volatility: number, mean: num
 
 /**
  * Adiciona dias a uma data de forma segura
+ * Aceita formatos DD/MM/YYYY ou YYYY-MM-DD
  */
 function addDays(dateStr: string, days: number): string {
   try {
-    // Parse a data no formato YYYY-MM-DD
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
+    let date: Date;
+    
+    // Detectar formato da data
+    if (dateStr.includes('/')) {
+      // Formato DD/MM/YYYY
+      const [day, month, year] = dateStr.split('/').map(Number);
+      date = new Date(year, month - 1, day);
+    } else {
+      // Formato YYYY-MM-DD
+      const [year, month, day] = dateStr.split('-').map(Number);
+      date = new Date(year, month - 1, day);
+    }
     
     if (isNaN(date.getTime())) {
-      console.error('Data inválida:', dateStr);
       return '';
     }
     
@@ -108,7 +117,6 @@ function addDays(dateStr: string, days: number): string {
     
     return `${newYear}-${newMonth}-${newDay}`;
   } catch (error) {
-    console.error('Erro ao adicionar dias:', error);
     return '';
   }
 }
