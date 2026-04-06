@@ -189,3 +189,7 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 
 ## Bug Fixes - Key Prop Persistente
 - [x] Corrigir erro de key prop nos elementos filhos do Line (círculos renderizados)
+
+
+## Bug Fixes - Ordenação de Datas em Formato DD/MM/YYYY
+- [x] Corrigir ordenação cronológica para datas em formato DD/MM/YYYY (abril aparecendo antes de março)

@@ -154,7 +154,21 @@ export default function Dashboard() {
     
     // Combinar e ordenar cronologicamente
     const combined = [...historical, ...projectedWithCumulative];
-    return combined.sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Funcao para converter DD/MM/YYYY ou YYYY-MM-DD para timestamp
+    const dateToTimestamp = (dateStr: string): number => {
+      if (dateStr.includes('/')) {
+        // Formato DD/MM/YYYY
+        const [day, month, year] = dateStr.split('/').map(Number);
+        return new Date(year, month - 1, day).getTime();
+      } else {
+        // Formato YYYY-MM-DD
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day).getTime();
+      }
+    };
+    
+    return combined.sort((a, b) => dateToTimestamp(a.date) - dateToTimestamp(b.date));
   }, [revenueView, chartFilteredRevenue, cumulativeRevenue, showProjection, projectedData]);
 
   const revenueChartData = chartDataWithProjection;
