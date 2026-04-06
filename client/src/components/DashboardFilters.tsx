@@ -24,6 +24,19 @@ const STATUS_LABELS: Record<string, string> = {
   packed: 'Embalado',
   waiting_expedition: 'Aguardando Expedição',
   refunded: 'Reembolsado',
+  PENDING: 'Pendente',
+  PROCESSING: 'Processando',
+  READY_TO_SHIP: 'Pronto para Enviar',
+  SHIPPED: 'Enviado',
+  DELIVERED: 'Entregue',
+  CANCELLED: 'Cancelado',
+  RETURNED: 'Devolvido',
+  FAILED: 'Falha na Entrega',
+  PENDING_RETURN: 'Retorno Pendente',
+  RETURNING: 'Retornando',
+  RETURNED_COMPLETED: 'Retorno Concluído',
+  REFUND_PENDING: 'Reembolso Pendente',
+  REFUND_COMPLETED: 'Reembolso Concluído',
 };
 
 export default function DashboardFilters({

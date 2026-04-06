@@ -166,3 +166,8 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 - [ ] Customizar Tooltip para exibir confiança da projeção
 - [ ] Validar renderização correta das linhas projetadas no gráfico
 - [ ] Estabilizar testes com dados determinísticos em vez de Math.random()
+
+
+## Bug Fixes - Projeção de Receita e Status dos Pedidos
+- [x] Corrigir sistema de projeções de receita futura (não está funcionando)
+- [x] Traduzir status dos pedidos para portugués (atualmente em inglés com siglas)

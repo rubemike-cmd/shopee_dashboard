@@ -368,14 +368,36 @@ export default function Dashboard() {
                   labelFormatter={(label) => `Data: ${label}`}
                 />
                 <Legend />
-                <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6', r: 3 }} activeDot={{ r: 5 }} name={revenueView === 'cumulative' ? 'Receita Acumulada' : 'Receita'} />
-                <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={2} dot={{ fill: '#10B981', r: 3 }} activeDot={{ r: 5 }} name={revenueView === 'cumulative' ? 'Lucro Acumulado' : 'Lucro'} />
-                {showProjection && (
-                  <>
-                    <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: '#3B82F6', r: 2, opacity: 0.5 }} activeDot={{ r: 4 }} name="Receita (Projetada)" data={projectedData} />
-                    <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: '#10B981', r: 2, opacity: 0.5 }} activeDot={{ r: 4 }} name="Lucro (Projetado)" data={projectedData} />
-                  </>
-                )}
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#3B82F6" 
+                  strokeWidth={2} 
+                  dot={(props) => {
+                    const { cx, cy, payload } = props;
+                    if (payload?.isProjected) {
+                      return <circle cx={cx} cy={cy} r={2} fill="#3B82F6" opacity={0.5} />;
+                    }
+                    return <circle cx={cx} cy={cy} r={3} fill="#3B82F6" />;
+                  }}
+                  activeDot={{ r: 5 }} 
+                  name={revenueView === 'cumulative' ? 'Receita Acumulada' : 'Receita'} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="profit" 
+                  stroke="#10B981" 
+                  strokeWidth={2} 
+                  dot={(props) => {
+                    const { cx, cy, payload } = props;
+                    if (payload?.isProjected) {
+                      return <circle cx={cx} cy={cy} r={2} fill="#10B981" opacity={0.5} />;
+                    }
+                    return <circle cx={cx} cy={cy} r={3} fill="#10B981" />;
+                  }}
+                  activeDot={{ r: 5 }} 
+                  name={revenueView === 'cumulative' ? 'Lucro Acumulado' : 'Lucro'} 
+                />
               </LineChart>
             </ResponsiveContainer>
           </Card>
