@@ -396,11 +396,11 @@ export default function Dashboard() {
                   stroke="#3B82F6" 
                   strokeWidth={2} 
                   dot={(props) => {
-                    const { cx, cy, payload } = props;
+                    const { cx, cy, payload, index } = props;
                     if (payload?.isProjected) {
-                      return <circle cx={cx} cy={cy} r={2} fill="#3B82F6" opacity={0.5} />;
+                      return <circle key={`revenue-dot-${index}`} cx={cx} cy={cy} r={2} fill="#3B82F6" opacity={0.5} />;
                     }
-                    return <circle cx={cx} cy={cy} r={3} fill="#3B82F6" />;
+                    return <circle key={`revenue-dot-${index}`} cx={cx} cy={cy} r={3} fill="#3B82F6" />;
                   }}
                   activeDot={{ r: 5 }} 
                   name={revenueView === 'cumulative' ? 'Receita Acumulada' : 'Receita'} 
@@ -412,11 +412,11 @@ export default function Dashboard() {
                   stroke="#10B981" 
                   strokeWidth={2} 
                   dot={(props) => {
-                    const { cx, cy, payload } = props;
+                    const { cx, cy, payload, index } = props;
                     if (payload?.isProjected) {
-                      return <circle cx={cx} cy={cy} r={2} fill="#10B981" opacity={0.5} />;
+                      return <circle key={`profit-dot-${index}`} cx={cx} cy={cy} r={2} fill="#10B981" opacity={0.5} />;
                     }
-                    return <circle cx={cx} cy={cy} r={3} fill="#10B981" />;
+                    return <circle key={`profit-dot-${index}`} cx={cx} cy={cy} r={3} fill="#10B981" />;
                   }}
                   activeDot={{ r: 5 }} 
                   name={revenueView === 'cumulative' ? 'Lucro Acumulado' : 'Lucro'} 

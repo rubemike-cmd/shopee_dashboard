@@ -185,3 +185,7 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 ## Bug Fixes - Ordenação e Visualização Acumulada
 - [x] Corrigir ordenação cronológica dos pontos no gráfico
 - [x] Adicionar visualização acumulada da projeção (dados projetados acumulados)
+
+
+## Bug Fixes - Key Prop Persistente
+- [x] Corrigir erro de key prop nos elementos filhos do Line (círculos renderizados)
