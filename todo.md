@@ -180,3 +180,8 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 ## Bug Fixes - Erros de Console
 - [x] Corrigir erro de key prop nas linhas do gráfico
 - [x] Corrigir erro de data inválida na função addDays (31/03/2026 em vez de 2026-03-31)
+
+
+## Bug Fixes - Ordenação e Visualização Acumulada
+- [x] Corrigir ordenação cronológica dos pontos no gráfico
+- [x] Adicionar visualização acumulada da projeção (dados projetados acumulados)

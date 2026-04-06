@@ -133,7 +133,28 @@ export default function Dashboard() {
     }
     
     const historical = revenueView === 'daily' ? chartFilteredRevenue : cumulativeRevenue;
-    return [...historical, ...projectedData];
+    
+    // Se for visualização acumulada, calcular acumulada dos dados projetados
+    let projectedWithCumulative = projectedData;
+    if (revenueView === 'cumulative' && historical.length > 0) {
+      const lastHistoricalRev = historical[historical.length - 1].revenue;
+      const lastHistoricalProf = historical[historical.length - 1].profit;
+      
+      projectedWithCumulative = projectedData.map((d, idx) => {
+        const cumulativeRev = lastHistoricalRev + projectedData.slice(0, idx + 1).reduce((sum, p) => sum + p.revenue, 0);
+        const cumulativeProf = lastHistoricalProf + projectedData.slice(0, idx + 1).reduce((sum, p) => sum + p.profit, 0);
+        
+        return {
+          ...d,
+          revenue: cumulativeRev,
+          profit: cumulativeProf,
+        };
+      });
+    }
+    
+    // Combinar e ordenar cronologicamente
+    const combined = [...historical, ...projectedWithCumulative];
+    return combined.sort((a, b) => a.date.localeCompare(b.date));
   }, [revenueView, chartFilteredRevenue, cumulativeRevenue, showProjection, projectedData]);
 
   const revenueChartData = chartDataWithProjection;
