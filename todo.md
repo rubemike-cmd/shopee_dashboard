@@ -193,3 +193,7 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 
 ## Bug Fixes - Ordenação de Datas em Formato DD/MM/YYYY
 - [x] Corrigir ordenação cronológica para datas em formato DD/MM/YYYY (abril aparecendo antes de março)
+
+
+## Bug Fixes - Ordenação de Dados Históricos
+- [x] Corrigir ordenação de revenueByDate (dados históricos) para garantir ordem cronológica na visão diária

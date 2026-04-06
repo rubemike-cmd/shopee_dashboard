@@ -177,6 +177,19 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
       byDate[date].count += 1;
     });
 
+    // Funcao para converter DD/MM/YYYY ou YYYY-MM-DD para timestamp
+    const dateToTimestamp = (dateStr: string): number => {
+      if (dateStr.includes('/')) {
+        // Formato DD/MM/YYYY
+        const [day, month, year] = dateStr.split('/').map(Number);
+        return new Date(year, month - 1, day).getTime();
+      } else {
+        // Formato YYYY-MM-DD
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day).getTime();
+      }
+    };
+
     return Object.entries(byDate)
       .map(([date, data]) => ({
         date,
@@ -184,7 +197,7 @@ export function useOrdersAnalysis(filters: FilterOptions = {}, externalOrders?: 
         profit: data.profit,
         orders: data.count,
       }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .sort((a, b) => dateToTimestamp(a.date) - dateToTimestamp(b.date));
   }, [filteredOrders]);
 
   const topProducts = useMemo(() => {
