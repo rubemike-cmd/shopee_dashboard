@@ -171,3 +171,7 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 ## Bug Fixes - Projeção de Receita e Status dos Pedidos
 - [x] Corrigir sistema de projeções de receita futura (não está funcionando)
 - [x] Traduzir status dos pedidos para portugués (atualmente em inglés com siglas)
+
+
+## Bug Fixes - Projeção Não Visível
+- [x] Corrigir projeção não sendo exibida no gráfico (botão Projeção não funciona)

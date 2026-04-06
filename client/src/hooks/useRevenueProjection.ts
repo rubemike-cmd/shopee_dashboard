@@ -55,7 +55,7 @@ function calculateVolatility(data: number[]): number {
 }
 
 /**
- * Calcula a tendência linear (slope) dos dados
+ * Calcula a tendência linear dos dados
  */
 function calculateTrend(data: number[]): number {
   if (data.length < 2) return 0;
@@ -84,6 +84,33 @@ function hasSignificantFluctuation(data: number[], volatility: number, mean: num
   // Coeficiente de variação > 30% indica flutuação significativa
   const coefficientOfVariation = (volatility / mean) * 100;
   return coefficientOfVariation > 30;
+}
+
+/**
+ * Adiciona dias a uma data de forma segura
+ */
+function addDays(dateStr: string, days: number): string {
+  try {
+    // Parse a data no formato YYYY-MM-DD
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    
+    if (isNaN(date.getTime())) {
+      console.error('Data inválida:', dateStr);
+      return '';
+    }
+    
+    date.setDate(date.getDate() + days);
+    
+    const newYear = date.getFullYear();
+    const newMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const newDay = String(date.getDate()).padStart(2, '0');
+    
+    return `${newYear}-${newMonth}-${newDay}`;
+  } catch (error) {
+    console.error('Erro ao adicionar dias:', error);
+    return '';
+  }
 }
 
 /**
@@ -120,10 +147,7 @@ export function useRevenueProjection(
   const projectedData = useMemo((): ProjectedDataPoint[] => {
     if (historicalData.length === 0) return [];
 
-    const lastDate = new Date(historicalData[historicalData.length - 1].date);
-    const lastRevenue = historicalData[historicalData.length - 1].revenue;
-    const lastProfit = historicalData[historicalData.length - 1].profit;
-    
+    const lastDateStr = historicalData[historicalData.length - 1].date;
     const revenues = historicalData.map(d => d.revenue);
     const profits = historicalData.map(d => d.profit);
     
@@ -140,12 +164,10 @@ export function useRevenueProjection(
     const projected: ProjectedDataPoint[] = [];
 
     for (let i = 1; i <= selectedPeriodDays; i++) {
-      const projectedDate = new Date(lastDate.getTime());
-      projectedDate.setDate(projectedDate.getDate() + i);
+      const projectedDate = addDays(lastDateStr, i);
       
-      // Validar data
-      if (isNaN(projectedDate.getTime())) {
-        console.error('Data inválida gerada:', { lastDate, i });
+      if (!projectedDate) {
+        console.error('Falha ao gerar data projetada para dia', i);
         continue;
       }
 
@@ -153,7 +175,6 @@ export function useRevenueProjection(
       const trendAdjustment = trend * i;
       
       // Adicionar variação aleatória baseada na volatilidade histórica
-      // Usar distribuição normal simplificada
       const randomFactor = (Math.random() - 0.5) * 2 * volatility;
       
       const projectedRevenue = Math.max(0, avgRevenue + trendAdjustment + randomFactor);
@@ -161,7 +182,7 @@ export function useRevenueProjection(
       const projectedProfit = projectedRevenue * profitRatio;
 
       projected.push({
-        date: projectedDate.toISOString().split('T')[0],
+        date: projectedDate,
         revenue: projectedRevenue,
         profit: projectedProfit,
         isProjected: true,
