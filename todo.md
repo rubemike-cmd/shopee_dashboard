@@ -219,3 +219,22 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 - [x] Extrair utilitário compartilhado de datas (client/src/lib/dateUtils.ts)
 - [x] Reutilizar em Dashboard.tsx e useOrdersAnalysis.ts
 - [ ] Adicionar testes para o utilitário de datas
+
+
+## Nova Funcionalidade - Filtro de Data Integrado
+- [x] Aplicar filtro de data do gráfico "Receita por Data" a todo o dashboard
+- [x] Atualizar KPIs (Total Pedidos, Valor Venda, Lucro, Margem) com período selecionado
+- [x] Atualizar tabela de pedidos com período selecionado
+- [x] Atualizar gráficos de status, estado e logística com período selecionado
+- [x] Atualizar seção de produtos com período selecionado
+- [x] Atualizar metas com período selecionado
+- [x] Testar integração do filtro com todas as seções
+
+
+## Validação - Filtro de Data Integrado
+- [ ] Validar que KPIs atualizam ao alterar data em "Receita por Data"
+- [ ] Validar que tabela de pedidos atualiza ao alterar data
+- [ ] Validar que gráficos de status/estado/logística atualizam ao alterar data
+- [ ] Validar que seção de produtos atualiza ao alterar data
+- [ ] Validar que metas atualizam ao alterar data
+- [ ] Adicionar testes de integração para filtro de data propagado

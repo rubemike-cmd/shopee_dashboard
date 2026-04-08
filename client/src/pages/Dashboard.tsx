@@ -67,6 +67,14 @@ export default function Dashboard() {
     setFilters(prev => ({ ...prev, dataInicio: start, dataFim: end }));
   }, []);
 
+  // Aplicar filtro de data do grafico a todo o dashboard
+  const handleChartDateRangeChange = useCallback((start: string | undefined, end: string | undefined) => {
+    setChartDateStart(start || '');
+    setChartDateEnd(end || '');
+    // Tambem atualizar os filtros gerais do dashboard
+    setFilters(prev => ({ ...prev, dataInicio: start, dataFim: end }));
+  }, []);
+
   const clearFilters = useCallback(() => setFilters({}), []);
 
   const handleExportPdf = async () => {
@@ -322,7 +330,7 @@ export default function Dashboard() {
                 {/* Clear inline date filter */}
                 {(chartDateStart || chartDateEnd) && (
                   <button
-                    onClick={() => { setChartDateStart(''); setChartDateEnd(''); }}
+                    onClick={() => handleChartDateRangeChange(undefined, undefined)}
                     className="flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                   >
                     <XIcon className="w-3 h-3" />
@@ -342,7 +350,7 @@ export default function Dashboard() {
                     value={chartDateStart}
                     min={minDate}
                     max={chartDateEnd || maxDate}
-                    onChange={e => setChartDateStart(e.target.value)}
+                    onChange={e => handleChartDateRangeChange(e.target.value, chartDateEnd)}
                     className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                   />
                 </div>
@@ -353,7 +361,7 @@ export default function Dashboard() {
                     value={chartDateEnd}
                     min={chartDateStart || minDate}
                     max={maxDate}
-                    onChange={e => setChartDateEnd(e.target.value)}
+                    onChange={e => handleChartDateRangeChange(chartDateStart, e.target.value)}
                     className="px-3 py-1.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                   />
                 </div>
