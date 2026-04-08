@@ -12,6 +12,7 @@ import DashboardFilters from '@/components/DashboardFilters';
 import { useOrdersAnalysis, FilterOptions } from '@/hooks/useOrdersAnalysis';
 import { useGoalsAnalysis } from '@/hooks/useGoalsAnalysis';
 import { useRevenueProjection } from '@/hooks/useRevenueProjection';
+import { dateToTimestamp, convertToISO } from '@/lib/dateUtils';
 import { useOrders } from '@/contexts/OrdersContext';
 import { usePdfReport } from '@/hooks/usePdfReport';
 import SpreadsheetUploader from '@/components/SpreadsheetUploader';
@@ -103,15 +104,22 @@ export default function Dashboard() {
 
   // Dates available in the data
   const allDates = useMemo(() => revenueByDate.map(d => d.date), [revenueByDate]);
-  const minDate = allDates[0] ?? '';
-  const maxDate = allDates[allDates.length - 1] ?? '';
+  const minDate = allDates[0] ? convertToISO(allDates[0]) : '';
+  const maxDate = allDates[allDates.length - 1] ? convertToISO(allDates[allDates.length - 1]) : '';
 
   // Filter revenueByDate by inline calendar selection
   const chartFilteredRevenue = useMemo(() => {
     if (!chartDateStart && !chartDateEnd) return revenueByDate;
     return revenueByDate.filter(d => {
-      if (chartDateStart && d.date < chartDateStart) return false;
-      if (chartDateEnd && d.date > chartDateEnd) return false;
+      const dataTimestamp = dateToTimestamp(d.date);
+      if (chartDateStart) {
+        const startTimestamp = dateToTimestamp(chartDateStart);
+        if (dataTimestamp < startTimestamp) return false;
+      }
+      if (chartDateEnd) {
+        const endTimestamp = dateToTimestamp(chartDateEnd);
+        if (dataTimestamp > endTimestamp) return false;
+      }
       return true;
     });
   }, [revenueByDate, chartDateStart, chartDateEnd]);

@@ -197,3 +197,25 @@ As seguintes funcionalidades foram identificadas como fora do escopo da versão 
 
 ## Bug Fixes - Ordenação de Dados Históricos
 - [x] Corrigir ordenação de revenueByDate (dados históricos) para garantir ordem cronológica na visão diária
+
+
+## Revisão Completa - Seção "Receita por Data"
+- [x] Revisar e corrigir filtro de data (chartDateStart, chartDateEnd)
+- [x] Revisar e corrigir cálculo de chartFilteredRevenue
+- [x] Revisar e corrigir cálculo de cumulativeRevenue
+- [x] Revisar e corrigir lógica de projeção (useRevenueProjection)
+- [x] Revisar e corrigir ordenação de datas em todos os pontos
+- [x] Testar filtro por período (7 dias, 30 dias, etc)
+- [x] Testar visualização diária vs acumulada
+- [x] Testar projeção com filtros ativos
+
+
+## Bug Fixes - Formato de Data nos Inputs
+- [x] Corrigir minDate/maxDate para formato ISO (YYYY-MM-DD) para compatibilidade com input type="date"
+- [x] Criar utilitário único de conversão de datas para evitar regressões
+
+
+## Refatoração - Utilitário Compartilhado de Datas
+- [x] Extrair utilitário compartilhado de datas (client/src/lib/dateUtils.ts)
+- [x] Reutilizar em Dashboard.tsx e useOrdersAnalysis.ts
+- [ ] Adicionar testes para o utilitário de datas
